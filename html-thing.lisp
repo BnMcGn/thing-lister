@@ -38,10 +38,11 @@
 (defun thing-display-core (thing key)
   (multiple-value-bind (maindisp conns) (get-display-functions thing)
     (pbit-content-area
-     nil
-     ((funcall maindisp key))
      ((dolist (c conns)
-       (funcall c key))))))
+	(funcall c key)))
+     ((funcall maindisp key))
+     nil)))
+
 
 (defun thing-display-page (thing key)
   (let ((*pbit-title* (format nil "Thing: ~a" 
