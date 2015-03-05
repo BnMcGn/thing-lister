@@ -5,7 +5,7 @@
   :description "Describe thing-lister here"
   :author "Your Name <your.name@example.com>"
   :license "Specify license here"
-  :depends-on (#:gadgets)
+  :depends-on (#:gadgets #:optima)
   :components ((:file "package")
                (:file "thing-lister")
                (:file "thing-labels")))
