@@ -5,9 +5,10 @@
   :description "Html implementation of thing-lister"
   :author "Ben McGunigle <bnmcgn@gmail.com>"
   :license "Apache 2.0"
-  :depends-on (#:thing-lister #:cl-who)
+  :depends-on (#:thing-lister #:cl-who #:ystok-uri)
   :components ((:file "html-package")
                (:file "html-s-exp")
 	       (:file "page-bits")
-	       (:file "html-thing")))
+	       (:file "html-thing")
+               (:file "web-input"))
 

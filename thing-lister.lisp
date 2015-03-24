@@ -6,26 +6,78 @@
 
 (defvar *thing-set* (make-hash-table :test #'eq))
 
-(defun def-thing (thingname keyfunc summary &key label)
+(defun prep-lister-spec (lspec)
+  (let ((data (if (listp lspec)
+		  (list*
+		   (cons :lister
+			 (car lspec))
+		   (keyword-splitter (cdr lspec)))
+		  (list (cons :lister lspec)))))
+    (aif2 (assoc :limitable data)
+	  data
+	  (cons (cons :limitable t) data))))
+      
+(defun def-thing (thingname keyfunc summary &key label lister searcher)
   (setf (gethash thingname *thing-set*)
-	(list
-	 (cons :keyfunc
-	       keyfunc)
-	 (cons :label
-	       (or label #'thing-label))
-	 (cons :summary
-	       summary))))
+	`((:keyfunc . ,keyfunc)
+	  (:label . ,(or label #'thing-label))
+	  (:summary . ,summary)
+	  ,(when lister
+		 (cons :lister
+		       (prep-lister-spec lister)))
+	  ,(when searcher
+		 (cons :searcher
+		       (prep-lister-spec searcher))))))
 
 (defun get-thing (thing)
   (gethash thing *thing-set*))
 
+(defun thing-call-keyfunc (thing &rest params)
+  (apply (assoc-cdr :keyfunc (get-thing thing)) params))
+
+(defun thing-summary (thing key)
+  (funcall (assoc-cdr :summary (get-thing thing)) 
+	   (thing-call-keyfunc thing key)))
+
 (defvar *thing-connection-set* (make-hash-table :test #'eq))
 
-(defun def-thing-connector (thing1 thing2 connfunc)
-  (push (list thing2 connfunc)
-	(gethash thing1 *thing-connection-set*)))
+(defun def-thing-connector (thing name &rest connspec)
+  (push (list* name (prep-lister-spec connspec))
+	(gethash thing *thing-connection-set*)))
 
 (defun get-connector-func (thing1 thing2)
   (dolist (x (gethash thing1 *thing-connection-set*))
     (when (eq (car x) thing2)
-      (return-from get-connector-func (second x)))))
+      (return-from get-connector-func (assoc-cdr :lister (cdr x))))))
+
+;The parameters of get-lister constitute a listerspec
+(defun get-lister (thing ltype &rest params)
+  (case ltype
+    (:connector
+     (dolist (x (gethash thing *thing-connection-set*))
+       (when (eq (car x) (car params))
+	 (return (cdr x)))))
+    (:thing
+     (assoc-cdr :lister (get-thing thing)))
+    (:search
+     (lambda (&rest sparams)
+       (apply 
+	(assoc-cdr :searcher (get-thing thing))
+	(when params (car params)) ;can include search terms in listerspec.
+	sparams)))))
+
+(defun get-list-of-things (listerspec &rest params)
+  (apply (assoc-cdr :lister (apply #'get-lister listerspec)) params))
+
+(defun get-things-length (listerspec &rest params)
+  (apply (assoc-cdr :length (apply #'get-lister listerspec)) params))
+
+(defun get-things-thingtype (listerspec &optional (index 0))
+  (declare (ignore index))
+  (case (second listerspec)
+    (:connector
+     (third listerspec))
+    (:thing
+     (car listerspec))
+    (:search
+     (car listerspec))))
