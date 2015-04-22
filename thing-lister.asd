@@ -7,5 +7,6 @@
   :license "Specify license here"
   :depends-on (#:gadgets #:optima)
   :components ((:file "package")
-               (:file "thing-lister")
-               (:file "thing-labels")))
+               (:file "early")
+               (:file "thing-labels" :depends-on ("early"))
+	       (:file "thing-lister" :depends-on ("thing-labels"))))

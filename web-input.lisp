@@ -1,7 +1,5 @@
 (in-package :html-thing-lister)
 
-
-
 (defun extract-webspecials-from-parameters (params)
   (with-collectors (norm< spec<)
     (dolist (p params)
@@ -10,27 +8,19 @@
        (spec< p)
        (norm< p)))))
 
-(defparameter *html-thing-webspecials* nil)
+(defparameter *html-thing-webspecial-validators* (make-hash-table))
 
 (defun bound-webspecials ()
-  "Creates a list of symbols to be automatically bound as specials by bind-webspecials. Looks in *package* and *html-thing-webspecials*. Individual symbols and lists of symbols in *html-thign-webspecials* will be accepted as is. Only symbols beginning and ending with ~ will be taken from packages therein. All items must be available at macro expansion time."
-  (let ((webspecials (if (member *package* *html-thing-webspecials*)
-			 *html-thing-webspecials*
-			 (cons *package* *html-thing-webspecials*))))
-    (collecting
-	(labels ((test-collect (x)
-		   (let ((sname (symbol-name x)))
-		     (and (eq #\~ (first-elt sname))
-			  (eq #\~ (last-elt sname))
-			  (collect x)))))
-	  (dolist (itm webspecials)
-	    (cond 
-	      ((symbolp itm) (collect itm))
-	      ((packagep itm)
-	       (do-symbols (s itm)
-		 (test-collect s)))
-	      ((listp itm)
-	       (mapc #'collect itm))))))))
+  "Creates a list of symbols to be automatically bound as specials by bind-webspecials."
+  (hash-table-keys *html-thing-webspecial-validators*))
+
+(defun default-validator ()
+  (??length-within 200))
+
+(defmacro def-webspecial (sym &optional default (validator #'default-validator))
+  `(progn
+     (setf (gethash ',sym *html-thing-webspecial-validators*) ,validator)
+     (defparameter ,sym ,default)))
 
 (defmacro bind-webspecials (input &body body)
   `(let 
@@ -39,7 +29,9 @@
 	   (collect `(,var (aif 
 			    (assoc ,(symbol-name var) ,input 
 				   :test #'eq-symb-upcase)
-			    (cdr it)
+			    (fail-if-not-valid 
+			     (gethash ',var *html-thing-webspecial-validators*)
+			     (cdr it))
 			    ,var)))))
      ,@body))
 
@@ -54,3 +46,27 @@
     (if (numberp val) 
         val
         (symbolize val))))
+
+;;;;;;;;;;;;
+; Validation functions:
+; 1st value: converted (or original) input value
+; 2nd value: boolean to indicate acceptable input.
+;
+
+(defun >>integer (&key (emsg "Not an integer"))
+  (lambda (data)
+    (handler-case
+	(values (parse-integer data) t)
+      (parse-error () (values data nil emsg)))))
+
+(defun ??length-within (max &key (emsg "Field too long"))
+  (lambda (data)
+    (if (<= (length data) max)
+	(values data t)
+	(values data nil emsg))))
+
+(defun fail-if-not-valid (test &rest parameters)
+  (multiple-valplex (apply test parameters)
+    (if v1
+	v0
+	(error v2))))

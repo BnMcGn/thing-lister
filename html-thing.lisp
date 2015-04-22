@@ -14,14 +14,44 @@
 (defun thing-link (thing key)
   (format nil "~athing/~(~a~)/~a" *html-thing-baseurl* thing key))
 
+(defun connector-link (thing thing2 key)
+  (format nil "~aconnector/~(~a~)/~(~a~)/~a" *html-thing-baseurl* 
+	  thing thing2 key))
+
+(defun search-link (thing)
+  (format nil "~athing-search/~(~a~)" *html-thing-baseurl* thing))
+
+(defvar *html-thing-sidebox-limit* 10)
+
 (defun connection-display-func (thing thing2)
   (let ((connfunc (get-connector-func thing thing2)))
     (lambda (key)
-      (pbit-featurebox-side nil
-	(:h3 (str (thing-label thing2)))
-	(dolist (fkey (funcall connfunc key))
-	  (htm (:div (:a :href (thing-link thing2 fkey) 
-		   (str (thing-summary thing2 fkey))))))))))
+      (multiple-value-bind (keep remainder)
+	  (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
+	   (when keep
+	     (pbit-featurebox-side nil
+	       (:h3 (str (thing-label thing2)))
+	       (dolist (fkey keep)
+		 (htm (:div (:a :href (thing-link thing2 fkey) 
+				(str (thing-summary thing2 fkey))))))
+	       (when remainder
+		 (htm
+		  (:div :class "navigation"
+			(:a :href (connector-link thing thing2 key)
+			    "See more"))))))))))
+
+(defun searchbox-display-func (thing)
+  (if (assoc :searcher (get-thing thing))
+      (lambda (x)
+	(declare (ignore x))
+	(html-out
+	  (:h3 "Search " (str (thing-label thing)))
+	  (:form :method "get" :action (search-link thing)
+		 (:input :type "text" :name "query")
+		 (:input :type "submit" :value "Search"))))
+      (lambda (x)
+	(declare (ignore x))
+	nil)))
 				
 (defun get-display-functions (thing)
   (values
@@ -29,6 +59,7 @@
      (lambda (key)
        (funcall dfunc (funcall (assoc-cdr :keyfunc (get-thing thing)) key))))
    (collecting
+     (collect (searchbox-display-func thing))  
      (dolist (conn (gethash thing *thing-connection-set*))
        (collect (connection-display-func thing (car conn)))))))
 
@@ -71,8 +102,9 @@
       newvals))
     (ystok.uri:render-uri purl nil t t)))
 
-(defvar ~pageindex~)
-(defvar ~pagequantity~)
+(def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))
+(def-webspecial ~pagequantity~ nil 
+  (>>integer :emsg "~pagequantity~: not an integer"))
 
 (defun simple-pager-display (&key total-length (url *html-thing-current-url*) 
 			     page-quantity (page-index 1))
@@ -80,7 +112,6 @@
          (page-index (or ~pageindex~ page-index))
          (next-val (+ page-index (or page-quantity 1)))
          (prev-val (- page-index (or page-quantity 1)))
-         ;(url (or url (get-request-url))) ;FIXME: Long term solution?
          (url-params (if page-quantity
                          `("~pagequantity~" . ,page-quantity)
                          nil)))
@@ -96,7 +127,7 @@
              "&lt; Previous"))
            (str "&lt; Previous"))
        (if (and total-length (< total-length 
-                                (* page-index (or page-quantity 1))))
+                                (+ page-index (or page-quantity 1))))
            (str " Next &gt;")
            (htm
             (:a
@@ -113,7 +144,7 @@
 						  (get-thing (car lspec)))
 				       (car lspec))))
 	(*pbit-css-sources* (list "/static/css/style.css"))
-	(~pagequantity~ (or ~pagequantity~ 3)) ;FIXME: Set default somewhere
+	(~pagequantity~ (or ~pagequantity~ 40)) ;FIXME: Set default somewhere
 	(llength (get-things-length lspec))
 	(thingtype (get-things-thingtype lspec)))
     (pbit-main-template nil
@@ -123,7 +154,7 @@
 	(html-out
 	  (dolist (itm (get-list-of-things 
 			lspec :limit ~pagequantity~
-			:offset (* (1- (or ~pageindex~ 1)) ~pagequantity~)))
+			:offset (1- (or ~pageindex~ 1))))
 	    (htm (:div 
 		  (:a :href (thing-link thingtype itm)
 		      (str (thing-summary thingtype itm)))))))

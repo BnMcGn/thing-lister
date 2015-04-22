@@ -1,5 +1,5 @@
 (defpackage #:html-thing-lister
-  (:use #:cl #:cl-who #:thing-lister #:gadgets #:alexandria)
+  (:use #:cl #:cl-who #:thing-lister #:gadgets #:alexandria #:anaphora)
   (:export #:->html
 	   #:*->html-list-handler*
 	   #:*->html-hash-handler*
@@ -13,5 +13,9 @@
 	   #:thing-display-core
 	   #:thing-display-page
 	   #:*html-thing-webspecials*
+	   #:*html-thing-current-url*
 	   #:bind-webspecials
-	   #:lister-page))
+	   #:lister-page
+	   #:define-page-parts
+	   #:define-page-template
+	   #:assemble-page))

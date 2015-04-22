@@ -69,3 +69,58 @@
      (pbit-header nil (funcall *pbit-header-func*) (funcall *pbit-menu-func*))
      ,@body
      (pbit-footer nil (funcall *pbit-footer-func*))))
+
+(defun %parts-in-use (parts template-code)
+  (collecting-set (:intersection
+		   (hash-table-keys parts))
+    (dolist (sym (flatten template-code))
+      (collect sym))))
+
+(defvar *page-part-names*
+  '(:css :site-index :title :main-content :site-search :notifications 
+    :external-links :logo :account-info :footnotes))
+
+(defmacro define-page-parts (name &body parts)
+  `(eval-always
+     (defun ,name (previous)
+       (collecting-hash-table (:existing previous)
+	 ,@parts))))
+
+(defmacro define-page-template (name &body template)
+  `(eval-always
+     (defun ,name ()
+       (quote ,template))))
+
+(defun %render-part (key data params)
+  (html-out
+    (dolist (x (gethash key data))
+      (if (stringp x)
+	  (str x)
+	  (apply x params)))))
+
+(defmacro assemble-page ((&rest parts) template)
+  (with-gensyms (parts-sym params)
+    (labels ((tree-walker (tree)
+	       (if (atom tree)
+		   (if (member tree *page-part-names*)
+		       `(%render-part ,tree ,parts-sym ,params)
+		       tree)
+		   (cons (tree-walker (car tree))
+			 (tree-walker (cdr tree))))))
+      `(let ((,parts-sym ,parts))
+	 (lambda (&rest ,params)
+	   ,(tree-walker template))))))
+  
+(defmacro assemble-page ((&rest parts) template)
+  (let ((sec-keys (%sections-in-use parts template))
+	(parts-sym (gensym)))
+    (labels ((tree-walker (tree)
+	       (if (atom tree)
+		   (if (member tree sec-keys)
+		       ``(%render-part ,tree ,parts-sim ,,params)
+		       tree)
+		   (cons (tree-walker (car tree))
+			 (tree-walker (cdr tree))))))
+      `(lambda (&rest params)
+	 ,(tree-walker template)))))
+	 

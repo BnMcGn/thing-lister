@@ -2,12 +2,27 @@
 
 (in-package :thing-lister)
 
+(defpattern tail-as (arg)
+  (let ((it (gensym)))
+    `(guard ,it 
+	    (funcall (lambda (thing)
+		       (labels ((proc (thg) (match thg
+					      ((cons _ (guard x (proc x))) t)
+					      (,arg t))))
+			 (proc thing)))
+		     ,it))))
 
-(defvar *thing-label-store*)
-(defvar *thing-label-filters*)
-(defvar *thing-context*)
-(defvar *thing-label-flags*)
-(defvar *thing-plural*)
+;;;;
+; def-labels macro stuff
+;;;;
+
+
+ 
+(defmacro def-labels (&rest labelspecs)
+  (%def-labels-core '*thing-label-store* labelspecs))
+
+(defmacro def-label-filters (&rest labelspecs)
+  (%def-labels-core '*thing-label-filters* labelspecs))
 
 (defun thing-label (thingspec &optional (context *thing-context*))
   (let* ((*thing-context* context)
@@ -25,60 +40,6 @@
     (if filter
 	(funcall filter label)
 	label)))
-
-
-(defpattern tail-as (arg)
-  (let ((it (gensym)))
-    `(guard ,it 
-	    (funcall (lambda (thing)
-		       (labels ((proc (thg) (match thg
-					      ((cons _ (guard x (proc x))) t)
-					      (,arg t))))
-			 (proc thing)))
-		     ,it))))
-
-;;;;
-; def-labels macro stuff
-;;;;
-
-(defun %pad-spec (labelspec)
-  (match labelspec
-    ((list x) (list nil nil nil x))
-    ((list x y) (list x nil nil y))
-    ((list x y z) (list x y nil z))
-    ((list _ _ _ _) labelspec)))
-
-(defun %flag-clause (inner flagspec)
-  (if flagspec
-      `(and (guard x (funcall (condition-release-closure t ',flagspec) x))
-	     ,inner)
-      inner))
-
-(defun %label-match-clause (thing contextspec flagspec func)
-      `(,(%flag-clause 
-	  `(list ,(or thing '_) ,(or contextspec '_))
-	  flagspec)
-	 ,func))
-
-(defun not-null (x)
-  (when x t))
-
-(defun %def-labels-core (storvar labelspecs)
-  (let ((labelspecs (mapcar #'%pad-spec labelspecs)))
-    `(push
-      (lambda (thing &optional (context *thing-context*))
-	(match (list thing context)
-	  ,@(collecting
-	    (dolist (lspec labelspecs)
-	      (collect (apply #'%label-match-clause lspec))))
-	  (_ :fail)))
-      ,storvar)))
- 
-(defmacro def-labels (&rest labelspecs)
-  (%def-labels-core '*thing-label-store* labelspecs))
-
-(defmacro def-label-filters (&rest labelspecs)
-  (%def-labels-core '*thing-label-filters* labelspecs))
 
 (defun condition-release-closure (item condition-specs)
   "Creates a closure that will release (return) item if all of the condition-specs are met. Condition-specs are cons pairs: varname, predicate. Varname is presumed to be a special variable. Predicate will be applied to it."

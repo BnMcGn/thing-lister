@@ -52,25 +52,35 @@
 
 ;The parameters of get-lister constitute a listerspec
 (defun get-lister (thing ltype &rest params)
-  (case ltype
-    (:connector
-     (dolist (x (gethash thing *thing-connection-set*))
-       (when (eq (car x) (car params))
-	 (return (cdr x)))))
-    (:thing
-     (assoc-cdr :lister (get-thing thing)))
-    (:search
-     (lambda (&rest sparams)
-       (apply 
-	(assoc-cdr :searcher (get-thing thing))
-	(when params (car params)) ;can include search terms in listerspec.
-	sparams)))))
+  (labels ((add-params (thing params)
+	     (if params
+		 (cons (cons :parameters params) thing)
+		 thing)))
+    (case ltype
+      (:connector
+       (dolist (x (gethash thing *thing-connection-set*))
+	 (when (eq (car x) (car params))
+	   (return (add-params (cdr x) (cdr params))))))
+      (:thing
+       (assoc-cdr :lister (get-thing thing)))
+      (:search
+       (let ((res (assoc-cdr :searcher (get-thing thing))))
+	 (add-params res params)))
+      (otherwise (error "No such lister type")))))
 
 (defun get-list-of-things (listerspec &rest params)
-  (apply (assoc-cdr :lister (apply #'get-lister listerspec)) params))
+  (let ((lister (apply #'get-lister listerspec)))
+    (apply (assoc-cdr :lister lister) 
+	   `(,@(assoc-cdr :parameters lister)
+	       ,@params))))
 
 (defun get-things-length (listerspec &rest params)
-  (apply (assoc-cdr :length (apply #'get-lister listerspec)) params))
+  (let ((lister (apply #'get-lister listerspec)))
+    (aif (assoc-cdr :length lister)
+	 (apply it 
+		`(,@(assoc-cdr :parameters lister)
+		    ,@params))
+	 (length (apply #'get-list-of-things listerspec params)))))
 
 (defun get-things-thingtype (listerspec &optional (index 0))
   (declare (ignore index))
