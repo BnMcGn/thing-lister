@@ -35,18 +35,6 @@
 			    ,var)))))
      ,@body))
 
-(defun string-unless-number (x)
-  (handler-case
-      (parse-number:parse-number x)
-    (sb-int:simple-parse-error () x)
-    (org.mapcar.parse-number:invalid-number () x)))
-
-(defun symbol-unless-number (x)
-  (let ((val (string-unless-number x)))
-    (if (numberp val) 
-        val
-        (symbolize val))))
-
 ;;;;;;;;;;;;
 ; Validation functions:
 ; 1st value: converted (or original) input value
