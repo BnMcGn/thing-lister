@@ -33,16 +33,6 @@
      (pbit-content nil
 	   (htm ,@content))))
 
-(defun script-lister ()
-  (html-out
-    (dolist (itm *pbit-javascript-sources*)
-      (htm (:script :src (str itm))))))
-
-(defun css-lister ()
-  (html-out
-    (dolist (itm *pbit-css-sources*)
-      (htm (:link :href (str itm) :rel "stylesheet" :type "text/css")))))
-
 (defvar *pbit-title*)
 (defvar *pbit-title-func* (lambda () *pbit-title*))
 (defvar *pbit-javascript-sources* nil)
@@ -70,15 +60,22 @@
      ,@body
      (pbit-footer nil (funcall *pbit-footer-func*))))
 
-(defun %parts-in-use (parts template-code)
-  (collecting-set (:intersection
-		   (hash-table-keys parts))
-    (dolist (sym (flatten template-code))
-      (collect sym))))
 
-(defvar *page-part-names*
-  '(:css :site-index :title :main-content :site-search :notifications 
-    :external-links :logo :account-info :footnotes))
+(defun script-lister (&optional (data *pbit-javascript-sources*))
+  (html-out
+    (dolist (itm data)
+      (htm (:script :src (str itm))))))
+
+(defun css-lister (&optional (data *pbit-css-sources*))
+  (html-out
+    (dolist (itm data)
+      (htm (:link :href (str itm) :rel "stylesheet" :type "text/css")))))
+
+
+(defparameter *page-part-names*
+  '(:@css :@javascript :@site-index :@title :@main-content 
+    :@side-content :@site-search :@notifications :@external-links :@logo 
+    :@account-info :@footnotes :@copyright :@messages))
 
 (defmacro define-page-parts (name &body parts)
   `(eval-always
@@ -86,41 +83,117 @@
        (collecting-hash-table (:existing previous)
 	 ,@parts))))
 
-(defmacro define-page-template (name &body template)
+(defmacro define-page-template ((name &key wrapper) &body template)
   `(eval-always
      (defun ,name ()
-       (quote ,template))))
+       (quote ,(if wrapper 
+		   (tree-search-replace (funcall-in-macro wrapper)
+					:match :@inner :value (car template))
+		   template)))))
 
 (defun %render-part (key data params)
   (html-out
     (dolist (x (gethash key data))
       (if (stringp x)
 	  (str x)
-	  (apply x params)))))
+	  (apply #'funcall-in-macro x params)))))
 
-(defmacro assemble-page ((&rest parts) template)
-  (with-gensyms (parts-sym params)
-    (labels ((tree-walker (tree)
-	       (if (atom tree)
-		   (if (member tree *page-part-names*)
-		       `(%render-part ,tree ,parts-sym ,params)
-		       tree)
-		   (cons (tree-walker (car tree))
-			 (tree-walker (cdr tree))))))
-      `(let ((,parts-sym ,parts))
-	 (lambda (&rest ,params)
-	   ,(tree-walker template))))))
-  
-(defmacro assemble-page ((&rest parts) template)
-  (let ((sec-keys (%sections-in-use parts template))
-	(parts-sym (gensym)))
-    (labels ((tree-walker (tree)
-	       (if (atom tree)
-		   (if (member tree sec-keys)
-		       ``(%render-part ,tree ,parts-sim ,,params)
-		       tree)
-		   (cons (tree-walker (car tree))
-			 (tree-walker (cdr tree))))))
-      `(lambda (&rest params)
-	 ,(tree-walker template)))))
-	 
+(defun %render-title (key data params)
+  (assert (eq key :@title))
+  (html-out
+    (:title (str
+     (apply #'concatenate 'string
+       (collecting 
+	 (dolist (x (gethash :@title data))
+	   (if (stringp x)
+	       (collect x)
+	       (collect (apply-in-macro x params))))))))))
+
+(defun %render-javascript (key data params)
+  (declare (ignore params))
+  (assert (eq key :@javascript))
+  (html-out
+    (dolist (itm (gethash :@javascript data))
+      (htm (:script :src itm)))))
+
+(defun %render-css (key data params)
+  (declare (ignore params))
+  (assert (eq key :@css))
+  (html-out
+    (dolist (itm (gethash :@css data))
+      (htm (:link :href itm :rel "stylesheet" :type "text/css")))))
+
+(defun %get-render-func (key)
+  (assert (member key *page-part-names*))
+  (case key
+    (:@css '%render-css)
+    (:@javascript '%render-javascript)
+    (:@title '%render-title)
+    (otherwise '%render-part)))
+
+(defun %expand-templates (templates parts-sym params-sym)
+  (labels ((walk-tree (tree)
+	     (if (atom tree)
+		 (cond 
+		   ((eq tree :@inner)
+		    (unless (cdr templates)
+		      (error "Last template should not contain :@inner"))
+		    (%expand-templates (cdr templates) parts-sym params-sym))
+		   ((member tree *page-part-names*)
+		    `(,(%get-render-func tree) ,tree 
+		       ,parts-sym ,params-sym))
+		   (t tree))
+		 (cons (walk-tree (car tree))
+		       (walk-tree (cdr tree))))))
+    (walk-tree (car templates))))
+
+(defun %gather-parts (parts)
+  "Each part will be a function specifier - #'function or a lambda expression,
+or an expression that otherwise evaluates to a function. This function will
+take a pre-existing hash table as its sole parameter, and will return a hash
+table"
+  (if (null parts)
+      '(make-hash-table)
+      (if (functionp-in-macro (car parts))
+	  `(funcall-in-macro ,(car parts) ,(%gather-parts (cdr parts)))
+	  `(funcall ,(car parts) ,(%gather-parts (cdr parts))))))
+
+(defmacro define-page (name parts templates)
+  (with-gensyms (parts-sym params-sym)
+    (let ((template (%expand-templates 
+		    (collecting
+		      (dolist (tm templates)
+			(collect (if (functionp-in-macro tm)
+				     (funcall-in-macro tm)
+				     tm))))
+		     parts-sym params-sym)))
+      `(let ((,parts-sym ,(%gather-parts parts)))
+	 (,@(if name `(defun ,name) '(lambda)) (&rest ,params-sym)
+	    ,@template)))))
+
+(define-page-template (page-base) 
+    (html-out
+     (:html
+      (:head
+       :@title
+       :@javascript
+       :@css)
+      (:body
+       :@inner))))
+
+(define-page-template (two-side-columns :wrapper #'page-base)
+  (html-out
+    ;Header
+    (:div :id "header_wrapper"
+      (:div :id "header" :@logo)
+      (:div :id "navcontainer"
+	    (:ul :id "navlist" :@menu)))
+    ;Main content
+    (:div :id "left_side"
+	  :@site-index :@side-content)
+    (:div :id "right_side"
+	  :@site-search :@account-info :@external-links)
+    (:div :id "content"
+	  :@messages :@main-content :@footnotes)
+    ;Footer
+    (:div :id "footer" :@copyright)))

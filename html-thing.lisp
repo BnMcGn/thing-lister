@@ -21,24 +21,26 @@
 (defun search-link (thing)
   (format nil "~athing-search/~(~a~)" *html-thing-baseurl* thing))
 
+;Number of items that a sidebox should display before adding a More... link
 (defvar *html-thing-sidebox-limit* 10)
 
 (defun connection-display-func (thing thing2)
   (let ((connfunc (get-connector-func thing thing2)))
     (lambda (key)
-      (multiple-value-bind (keep remainder)
-	  (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
-	   (when keep
-	     (pbit-featurebox-side nil
-	       (:h3 (str (thing-label thing2)))
-	       (dolist (fkey keep)
-		 (htm (:div (:a :href (thing-link thing2 fkey) 
-				(str (thing-summary thing2 fkey))))))
-	       (when remainder
-		 (htm
-		  (:div :class "navigation"
-			(:a :href (connector-link thing thing2 key)
-			    "See more"))))))))))
+      (with-label-context-added thing
+	(multiple-value-bind (keep remainder)
+	    (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
+	  (when keep
+	    (pbit-featurebox-side nil
+	      (:h3 (str (thing-label thing2)))
+	      (dolist (fkey keep)
+		(htm (:div (:a :href (thing-link thing2 fkey) 
+			       (str (thing-summary thing2 fkey))))))
+	      (when remainder
+		(htm
+		 (:div :class "navigation"
+		       (:a :href (connector-link thing thing2 key)
+			   "See more")))))))))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
@@ -52,7 +54,25 @@
       (lambda (x)
 	(declare (ignore x))
 	nil)))
-				
+
+(defun thing-display-functions (thing &key previous)
+  (collecting-hash-table (:existing (or previous (make-hash-table)))
+    (collect :@main-content
+      (lambda (key)
+	(html-out
+	  (:h2 
+	   (str (concatenate 'string 
+		  (thing-label thing) ": " (thing-summary thing key)))))))
+    (collect :@main-content 
+      (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
+	(lambda (key)
+	  (funcall dfunc (thing-call-keyfunc thing key)))))
+    (collect :@side-content (searchbox-display-func thing))
+    (dolist (conn (gethash thing *thing-connection-set*))
+      (collect :@side-content (connection-display-func thing (car conn))))
+    (collect :@css "/static/css/style.css")
+    (collect :@title (format nil "Thing: ~a" (thing-label thing)))))
+    
 (defun get-display-functions (thing)
   (values
    (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
@@ -84,6 +104,21 @@
 	(*pbit-css-sources* (list "/static/css/style.css")))
     (pbit-main-template nil
       (thing-display-core thing key))))
+
+(define-page book-page 
+    ((lambda (x)
+       (thing-display-functions 'books::book :previous x)))
+  (#'two-side-columns))
+
+(let ((pages (make-hash-table)))
+  (defun thing-pages (thing key)
+    (unless (key-in-hash? thing pages)
+      (setf (gethash thing pages)
+	    (define-page nil
+		((lambda (x)
+		   (thing-display-functions thing :previous x)))
+	      (#'two-side-columns))))
+    (funcall (gethash thing pages) key)))
 
 ;;;;;;;;;;
 ;Lister

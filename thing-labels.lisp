@@ -12,9 +12,6 @@
 			 (proc thing)))
 		     ,it))))
 
-;;;;
-; def-labels macro stuff
-;;;;
 
 
  
@@ -46,7 +43,7 @@
   (lambda (x)
     (declare (ignore x))
     (loop for (var pred) in condition-specs
-       do (unless (funcall pred (symbol-value var))
+       do (unless (funcall-in-macro pred (symbol-value var))
 	    (return nil))
        finally (return item))))
 
@@ -65,4 +62,9 @@
     (#'capitalize-first))
 
 (def-label-filters
-    (_ _ ((*thing-plural* #'not-null)) #'pluralize))
+    (_ _ ((*thing-plural* (function not-null))) #'pluralize))
+
+(defmacro with-label-context-added (context &body body)
+  `(let ((*thing-context*
+	  (concatenate 'list *thing-context* (ensure-list ,context))))
+     ,@body))

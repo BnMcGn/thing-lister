@@ -9,7 +9,7 @@
 	   #:thing-label
 	   #:def-thing
 	   #:get-thing
-	   #:thing-summaryXbpac
+	   #:thing-summary
 	   #:def-thing-connector
 	   #:get-connector-func
 	   #:*thing-set*
@@ -17,4 +17,6 @@
 	   #:*thing-context*
 	   #:get-list-of-things
 	   #:get-things-length
-	   #:get-things-thingtype))
+	   #:get-things-thingtype
+	   #:thing-call-keyfunc
+	   #:with-label-context-added))

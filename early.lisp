@@ -3,9 +3,9 @@
 
 (defparameter *thing-label-store* nil)
 (defparameter *thing-label-filters* nil)
-(defvar *thing-context*)
-(defvar *thing-label-flags*)
-(defvar *thing-plural*)
+(defparameter *thing-context* nil)
+(defparameter *thing-label-flags* nil)
+(defparameter *thing-plural* nil)
 
 (defun %pad-spec (labelspec)
   (match labelspec

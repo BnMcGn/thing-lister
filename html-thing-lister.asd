@@ -10,8 +10,8 @@
 	#:ystok-uri
 	#:cl-ppcre)
   :components ((:file "html-package")
+               (:file "web-input")
                (:file "html-s-exp")
 	       (:file "page-bits")
-	       (:file "html-thing")
-               (:file "web-input")))
+	       (:file "html-thing" :depends-on ("web-input"))))
 
