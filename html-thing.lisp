@@ -55,7 +55,7 @@
 	(declare (ignore x))
 	nil)))
 
-(defun thing-display-functions (thing &key previous)
+(defun thing-display-parts (thing &key previous)
   (collecting-hash-table (:existing (or previous (make-hash-table)))
     (collect :@main-content
       (lambda (key)
@@ -70,45 +70,7 @@
     (collect :@side-content (searchbox-display-func thing))
     (dolist (conn (gethash thing *thing-connection-set*))
       (collect :@side-content (connection-display-func thing (car conn))))
-    (collect :@css "/static/css/style.css")
     (collect :@title (format nil "Thing: ~a" (thing-label thing)))))
-    
-(defun get-display-functions (thing)
-  (values
-   (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
-     (lambda (key)
-       (funcall dfunc (funcall (assoc-cdr :keyfunc (get-thing thing)) key))))
-   (collecting
-     (collect (searchbox-display-func thing))  
-     (dolist (conn (gethash thing *thing-connection-set*))
-       (collect (connection-display-func thing (car conn)))))))
-
-(defun thing-display-core (thing key)
-    (multiple-value-bind (maindisp conns) (get-display-functions thing)
-      (pbit-content-area
-       ((let ((*thing-context* 
-	       (concatenate 'list *thing-context* (list thing))))
-	 (dolist (c conns)
-	   (funcall c key))))
-       ((html-out
-	  (:h2 (str (concatenate 
-		     'string 
-		     (thing-label thing) ": " (thing-summary thing key)))))
-	(funcall maindisp key))
-       nil)))
-
-(defun thing-display-page (thing key)
-  (let ((*pbit-title* (format nil "Thing: ~a" 
-			      (funcall (assoc-cdr :label (get-thing thing))
-				       thing)))
-	(*pbit-css-sources* (list "/static/css/style.css")))
-    (pbit-main-template nil
-      (thing-display-core thing key))))
-
-(define-page book-page 
-    ((lambda (x)
-       (thing-display-functions 'books::book :previous x)))
-  (#'two-side-columns))
 
 (let ((pages (make-hash-table)))
   (defun thing-pages (thing key)
@@ -116,7 +78,7 @@
       (setf (gethash thing pages)
 	    (define-page nil
 		((lambda (x)
-		   (thing-display-functions thing :previous x)))
+		   (thing-display-parts thing :previous x)))
 	      (#'two-side-columns))))
     (funcall (gethash thing pages) key)))
 
@@ -172,6 +134,29 @@
                     url-params)
              " Next &gt;")))))))
 
+(defun lister-parts (&key previous)
+  (collecting-hash-table (:existing (or previous (make-hash-table)))
+      (collect :@title
+	(lambda (lspec &rest params)
+	  (declare (ignore params))
+	  (format nil "Things: ~a" 
+	    (funcall (assoc-cdr :label (get-thing (car lspec))) (car lspec)))))
+      (collect :@main-content
+	(lambda (lspec &rest params)
+	  (declare (ignore params))
+	  (let ((llength (get-things-length lspec))
+		(thingtype (get-things-thingtype lspec)))
+	    (simple-pager-display :total-length llength)
+	    (html-out
+	      (dolist (itm (get-list-of-things 
+			    lspec :limit ~pagequantity~
+			    :offset (1- (or ~pageindex~ 1))))
+		(htm (:div 
+		      (:a :href (thing-link thingtype itm)
+			  (str (thing-summary thingtype itm)))))))
+	    (simple-pager-display :total-length llength))))))
+	  
+	
 (defun lister-page (lspec &rest params)
   (declare (ignore params))
   (let ((*pbit-title* (format nil "Things: ~a" 

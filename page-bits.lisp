@@ -83,13 +83,29 @@
        (collecting-hash-table (:existing previous)
 	 ,@parts))))
 
+(defun %make-part-func (key keyclauses)
+  (let ((lines (collecting
+		 (dolist (x keyclauses)
+		   (when (eq (car x) key)
+		     (dolist (y x)
+		       (collect y)))))))
+    (when lines
+      `(lambda (previous)
+	 (collecting-hash-table (:existing previous)
+	   ,@lines)))))
+
 (defmacro define-page-template ((name &key wrapper) &body template)
-  `(eval-always
-     (defun ,name ()
-       (quote ,(if wrapper 
-		   (tree-search-replace (funcall-in-macro wrapper)
-					:match :@inner :value (car template))
-		   template)))))
+  (multiple-value-bind (keyclauses template)
+      (extract-keywords '(:prepend-parts :append-parts) template :in-list t)
+    `(eval-always
+       (defun ,name ()
+	 (values
+	  (quote ,(if wrapper 
+		      (tree-search-replace (funcall-in-macro wrapper)
+					   :match :@inner :value (car template))
+		      template))
+	  (quote ,(%make-part-func :prepend-parts keyclauses))
+	  (quote ,(%make-part-func :append-parts keyclauses)))))))
 
 (defun %render-part (key data params)
   (html-out
@@ -147,7 +163,7 @@
 		       (walk-tree (cdr tree))))))
     (walk-tree (car templates))))
 
-(defun %gather-parts (parts)
+(defun %collate-parts (parts)
   "Each part will be a function specifier - #'function or a lambda expression,
 or an expression that otherwise evaluates to a function. This function will
 take a pre-existing hash table as its sole parameter, and will return a hash
@@ -155,21 +171,30 @@ table"
   (if (null parts)
       '(make-hash-table)
       (if (functionp-in-macro (car parts))
-	  `(funcall-in-macro ,(car parts) ,(%gather-parts (cdr parts)))
-	  `(funcall ,(car parts) ,(%gather-parts (cdr parts))))))
+	  `(funcall-in-macro ,(car parts) ,(%collate-parts (cdr parts)))
+	  `(funcall ,(car parts) ,(%collate-parts (cdr parts))))))
 
 (defmacro define-page (name parts templates)
-  (with-gensyms (parts-sym params-sym)
-    (let ((template (%expand-templates 
-		    (collecting
-		      (dolist (tm templates)
-			(collect (if (functionp-in-macro tm)
-				     (funcall-in-macro tm)
-				     tm))))
-		     parts-sym params-sym)))
-      `(let ((,parts-sym ,(%gather-parts parts)))
-	 (,@(if name `(defun ,name) '(lambda)) (&rest ,params-sym)
-	    ,@template)))))
+  (let (prepend-parts append-parts)
+    (labels ((proc-template (tmpl)
+	       (multiple-value-bind (tmp pre app)
+		   (funcall-in-macro tmpl)
+		 (and pre (push pre prepend-parts))
+		 (and app (push app append-parts))
+		 tmp)))
+      (with-gensyms (parts-sym params-sym)
+	(let ((template (%expand-templates 
+			 (collecting
+			   (dolist (tm templates)
+			     (collect (if (functionp-in-macro tm)
+					  (proc-template tm)
+					  tm))))
+			 parts-sym params-sym)))
+	  `(let ((,parts-sym 
+		  ,(%collate-parts (concatenate 'list
+				     prepend-parts parts append-parts))))
+	     (,@(if name `(defun ,name) '(lambda)) (&rest ,params-sym)
+		,@template)))))))
 
 (define-page-template (page-base) 
     (html-out
@@ -182,6 +207,8 @@ table"
        :@inner))))
 
 (define-page-template (two-side-columns :wrapper #'page-base)
+  (:prepend-parts 
+   (collect :@css "/static/css/style.css"))
   (html-out
     ;Header
     (:div :id "header_wrapper"
