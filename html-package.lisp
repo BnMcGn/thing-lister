@@ -18,4 +18,8 @@
 	   #:lister-page
 	   #:define-page-parts
 	   #:define-page-template
-	   #:assemble-page))
+	   #:assemble-page
+	   #:thing-pages
+	   #:define-page
+	   #:page-base
+	   #:two-side-columns))

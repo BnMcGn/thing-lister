@@ -134,7 +134,7 @@
                     url-params)
              " Next &gt;")))))))
 
-(defun lister-parts (&key previous)
+(defun lister-parts (previous)
   (collecting-hash-table (:existing (or previous (make-hash-table)))
       (collect :@title
 	(lambda (lspec &rest params)
@@ -145,7 +145,9 @@
 	(lambda (lspec &rest params)
 	  (declare (ignore params))
 	  (let ((llength (get-things-length lspec))
-		(thingtype (get-things-thingtype lspec)))
+		(thingtype (get-things-thingtype lspec))
+		;FIXME: Set ~pagequantity~ default somewhere
+		(~pagequantity~ (or ~pagequantity~ 40))) 
 	    (simple-pager-display :total-length llength)
 	    (html-out
 	      (dolist (itm (get-list-of-things 
@@ -156,28 +158,5 @@
 			  (str (thing-summary thingtype itm)))))))
 	    (simple-pager-display :total-length llength))))))
 	  
-	
-(defun lister-page (lspec &rest params)
-  (declare (ignore params))
-  (let ((*pbit-title* (format nil "Things: ~a" 
-			      (funcall (assoc-cdr :label 
-						  (get-thing (car lspec)))
-				       (car lspec))))
-	(*pbit-css-sources* (list "/static/css/style.css"))
-	(~pagequantity~ (or ~pagequantity~ 40)) ;FIXME: Set default somewhere
-	(llength (get-things-length lspec))
-	(thingtype (get-things-thingtype lspec)))
-    (pbit-main-template nil
-      (pbit-content-area
-       nil
-       ((simple-pager-display :total-length llength)
-	(html-out
-	  (dolist (itm (get-list-of-things 
-			lspec :limit ~pagequantity~
-			:offset (1- (or ~pageindex~ 1))))
-	    (htm (:div 
-		  (:a :href (thing-link thingtype itm)
-		      (str (thing-summary thingtype itm)))))))
-	(simple-pager-display :total-length llength))
-       nil))))
-       
+(define-page lister-page (#'lister-parts) (#'two-side-columns))
+
