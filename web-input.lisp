@@ -28,7 +28,7 @@
 	 (dolist (var (bound-webspecials))
 	   (collect `(,var (aif 
 			    (assoc ,(symbol-name var) ,input 
-				   :test #'eq-symb-upcase)
+				   :test #'eq-symb)
 			    (fail-if-not-valid 
 			     (gethash ',var *html-thing-webspecial-validators*)
 			     (cdr it))

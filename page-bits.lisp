@@ -23,16 +23,17 @@
        (collecting-hash-table (:existing previous)
 	 ,@parts))))
 
-(defun %make-part-func (key keyclauses)
-  (let ((lines (collecting
-		 (dolist (x keyclauses)
-		   (when (eq (car x) key)
-		     (dolist (y x)
-		       (collect y)))))))
-    (when lines
-      `(lambda (previous)
-	 (collecting-hash-table (:existing previous)
-	   ,@lines)))))
+(eval-always
+  (defun %make-part-func (key keyclauses)
+    (let ((lines (collecting
+		   (dolist (x keyclauses)
+		     (when (eq (car x) key)
+		       (dolist (y x)
+			 (collect y)))))))
+      (when lines
+	`(lambda (previous)
+	   (collecting-hash-table (:existing previous)
+	     ,@lines))))))
 
 (defmacro define-page-template ((name &key wrapper) &body template)
   (multiple-value-bind (keyclauses template)
@@ -68,9 +69,13 @@
 (defun %render-javascript (key data params)
   (declare (ignore params))
   (assert (eq key :@javascript))
+  ;FIXME: hack: assumes itm is js URL if it is a string. If func, will be 
+  ;source code. 
   (html-out
     (dolist (itm (gethash :@javascript data))
-      (htm (:script :src itm)))))
+      (if (functionp itm)
+	  (htm (:script :type "text/javascript" (str (funcall itm))))
+	  (htm (:script :src itm))))))
 
 (defun %render-css (key data params)
   (declare (ignore params))
