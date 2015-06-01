@@ -8,7 +8,8 @@
   :depends-on (#:thing-lister 
 	#:cl-who 
 	#:ystok-uri
-	#:cl-ppcre)
+	#:cl-ppcre
+	#:webhax)
   :components ((:file "html-package")
                (:file "web-input")
                (:file "html-s-exp")

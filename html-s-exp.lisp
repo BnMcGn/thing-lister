@@ -1,12 +1,6 @@
 
 (in-package :html-thing-lister)
 
-(defparameter *html-thing-output* *standard-output*)
-
-(defmacro html-out (&body body)
-  "Outputs HTML to standard out."
-  `(with-html-output (*html-thing-output* nil :indent t) ,@body))
-
 (defvar *->html-list-handler*)
 (defvar *->html-hash-handler*)
 (defvar *->html-alist-handler*)
