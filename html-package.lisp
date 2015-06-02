@@ -1,13 +1,6 @@
 (defpackage #:html-thing-lister
   (:use #:cl #:cl-who #:thing-lister #:gadgets #:alexandria #:anaphora #:webhax)
-  (:export #:->html
-	   #:*->html-list-handler*
-	   #:*->html-hash-handler*
-	   #:*->html-alist-handler*
-	   #:*->html-symbol-handler*
-	   #:*->html-misc-handler*
-	   #:*->html-main-handler*
-	   #:*thing-display-set*
+  (:export #:*thing-display-set*
 	   #:thing-display-core
 	   #:thing-display-page
 	   #:*html-thing-webspecials*
