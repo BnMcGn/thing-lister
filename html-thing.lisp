@@ -34,7 +34,7 @@
 	    (pbit-featurebox-side nil
 	      (:h3 (str (thing-label thing2)))
 	      (dolist (fkey keep)
-		(htm (:div (:a :href (thing-link thing2 fkey) 
+		(htm (:div (:a :href (thing-link thing2 fkey)
 			       (str (thing-summary thing2 fkey))))))
 	      (when remainder
 		(htm

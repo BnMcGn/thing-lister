@@ -11,6 +11,5 @@
 	#:cl-ppcre
 	#:webhax)
   :components ((:file "html-package")
-               (:file "web-input")
-	       (:file "html-thing" :depends-on ("web-input"))))
+	       (:file "html-thing" )))
 
