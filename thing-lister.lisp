@@ -91,3 +91,44 @@
      (car listerspec))
     (:search
      (car listerspec))))
+
+
+;;;
+; db-thing
+;;;
+
+;FIXME: think about me: should thing-lister depend on sql-stuff?
+
+(defun def-db-thing (thingname table summary &key sortkeys search-cols)
+  (let ((table (or table thingname))
+	(tkey (sql-stuff:get-table-pkey table)))
+    (def-thing 
+	thingname
+	(lambda (key)
+	  (sql-stuff:get-assoc-by-pkey table key))
+      summary
+      :lister (list
+	       (lambda (&rest params)
+		 (apply #'sql-stuff:get-columns table tkey params))
+	       :sortkeys sortkeys
+	       :length (lambda (&rest params)
+			 (sql-stuff:get-count 
+			  (apply #'sql-stuff:get-column-query 
+				 table tkey params))))
+      :searcher (when search-cols
+		  (list
+		   (lambda (text &rest params)
+		     (apply #'sql-stuff:fulltext-search text
+			    (mapcar (lambda (x)
+				      (sql-stuff:colm table x))
+				    search-cols)
+			    params))
+		   :sortkeys sortkeys
+		   :length
+		   (lambda (text &rest params)
+		     (sql-stuff:get-count
+		      (apply #'sql-stuff:fulltext-search-query text 
+			     (mapcar (lambda (x)
+				       (sql-stuff:colm table x))
+				     search-cols)
+			     params))))))))
