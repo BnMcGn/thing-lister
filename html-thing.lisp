@@ -63,6 +63,9 @@
 	  (:h2 
 	   (str (concatenate 'string 
 		  (thing-label thing) ": " (thing-summary thing key)))))))
+    (collect :@main-content
+      (lambda (key)
+	(display-thing-actions thing key)))
     (collect :@main-content 
       (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
 	(lambda (key)
@@ -153,10 +156,30 @@
 	      (dolist (itm (get-list-of-things 
 			    lspec :limit ~pagequantity~
 			    :offset (1- (or ~pageindex~ 1))))
-		(htm (:div 
-		      (:a :href (thing-link thingtype itm)
-			  (str (thing-summary thingtype itm)))))))
+		(htm (:div
+		      (:span
+		       (:a :href (thing-link thingtype itm)
+			   (str (thing-summary thingtype itm)))
+		       (display-thing-actions thingtype itm))))))
 	    (simple-pager-display :total-length llength))))))
 	  
 (define-page lister-page (#'lister-parts) (#'two-side-columns))
 
+;;;;
+; Actions
+;;;;
+
+(defvar *html-thing-actions* nil)
+
+(defun def-thing-action (thing action pscode)
+  (push (list thing action pscode) *html-thing-actions*))
+
+(defun get-thing-actions (thing)
+  (remove-if-not (lambda (x) (eq (car x) thing)) *html-thing-actions*))
+
+(defun display-thing-actions (thingtype thing)
+  (dolist (act (get-thing-actions thingtype))
+    (html-out
+     (:button 
+      :onclick (ps-inline* `(funcall ,(third act) ,thing))
+      (str (thing-label (second act)))))))
