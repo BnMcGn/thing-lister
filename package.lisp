@@ -13,4 +13,5 @@
 	   #:get-list-of-things
 	   #:get-things-length
 	   #:get-things-thingtype
-	   #:thing-call-keyfunc))
+	   #:thing-call-keyfunc
+	   #:def-db-thing))

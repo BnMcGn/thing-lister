@@ -109,7 +109,7 @@
       summary
       :lister (list
 	       (lambda (&rest params)
-		 (apply #'sql-stuff:get-columns table tkey params))
+		 (apply #'sql-stuff:get-column table tkey params))
 	       :sortkeys sortkeys
 	       :length (lambda (&rest params)
 			 (sql-stuff:get-count 
