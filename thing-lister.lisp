@@ -100,8 +100,7 @@
 ;FIXME: think about me: should thing-lister depend on sql-stuff?
 
 (defun def-db-thing (thingname table summary &key sortkeys search-cols)
-  (let ((table (or table thingname))
-	(tkey (sql-stuff:get-table-pkey table)))
+  (let ((table (or table thingname)))
     (def-thing 
 	thingname
 	(lambda (key)
@@ -109,12 +108,14 @@
       summary
       :lister (list
 	       (lambda (&rest params)
-		 (apply #'sql-stuff:get-column table tkey params))
+		 (apply #'sql-stuff:get-column 
+			table (sql-stuff:get-table-pkey table) params))
 	       :sortkeys sortkeys
 	       :length (lambda (&rest params)
 			 (sql-stuff:get-count 
 			  (apply #'sql-stuff:get-column-query 
-				 table tkey params))))
+				 table 
+				 (sql-stuff:get-table-pkey table) params))))
       :searcher (when search-cols
 		  (list
 		   (lambda (text &rest params)
