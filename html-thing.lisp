@@ -27,12 +27,12 @@
 (defun connection-display-func (thing thing2)
   (let ((connfunc (get-connector-func thing thing2)))
     (lambda (key)
-      (with-label-context-added thing
-	(multiple-value-bind (keep remainder)
-	    (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
-	  (when keep
+      (multiple-value-bind (keep remainder)
+	  (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
+	(when keep
+	  (in-label-context thing
 	    (pbit-featurebox-side nil
-	      (:h3 (str (thing-label thing2)))
+	      (:h3 (str (thing-label-context thing2 thing)))
 	      (dolist (fkey keep)
 		(htm (:div (:a :href (thing-link thing2 fkey)
 			       (str (thing-summary thing2 fkey))))))
