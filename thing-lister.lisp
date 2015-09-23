@@ -99,12 +99,13 @@
 
 ;FIXME: think about me: should thing-lister depend on sql-stuff?
 
-(defun def-db-thing (thingname table summary &key sortkeys search-cols)
+(defun def-db-thing (thingname table summary &key sortkeys search-cols keyfunc)
   (let ((table (or table thingname)))
     (def-thing
         thingname
-        (lambda (key)
-          (sql-stuff:get-assoc-by-pkey table key))
+        (or keyfunc
+            (lambda (key)
+              (sql-stuff:get-assoc-by-pkey table key)))
       summary
       :lister (list
                (lambda (&rest params)
