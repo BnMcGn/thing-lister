@@ -32,6 +32,10 @@
 (defun get-thing (thing)
   (gethash thing *thing-set*))
 
+(defun thing-symbols ()
+  "List of things currently defined"
+  (hash-table-keys *thing-set*))
+
 (defun thing-call-keyfunc (thing &rest params)
   (apply (assoc-cdr :keyfunc (get-thing thing)) params))
 
@@ -53,19 +57,19 @@
 ;The parameters of get-lister constitute a listerspec
 (defun get-lister (thing ltype &rest params)
   (labels ((add-params (thing params)
-       (if params
-     (cons (cons :parameters params) thing)
-     thing)))
+             (if params
+                 (cons (cons :parameters params) thing)
+                 thing)))
     (case ltype
       (:connector
        (dolist (x (gethash thing *thing-connection-set*))
-   (when (eq (car x) (car params))
-     (return (add-params (cdr x) (cdr params))))))
+         (when (eq (car x) (car params))
+           (return (add-params (cdr x) (cdr params))))))
       (:thing
        (assoc-cdr :lister (get-thing thing)))
       (:search
        (let ((res (assoc-cdr :searcher (get-thing thing))))
-   (add-params res params)))
+         (add-params res params)))
       (otherwise (error "No such lister type")))))
 
 (defun get-list-of-things (listerspec &rest params)
@@ -77,10 +81,12 @@
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (aif (assoc-cdr :length lister)
-   (apply it
-    `(,@(assoc-cdr :parameters lister)
-        ,@params))
-   (length (apply #'get-list-of-things listerspec params)))))
+         (apply it
+                `(,@(assoc-cdr :parameters lister)
+                  ,@params))
+         (length (apply #'get-list-of-things listerspec params)))))
+
+(defparameter *thing-types* '(:thing :connector :search))
 
 (defun get-things-thingtype (listerspec &optional (index 0))
   (declare (ignore index))

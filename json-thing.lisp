@@ -1,25 +1,67 @@
 (in-package :json-thing-lister)
 
 
-(defun create-json-thing-lister (url-base)
-  (let ((spliturl (split-sequence #\/ url-base)))
-    (when (= 0 (length (car spliturl)))
-      (setf spliturl (cdr spliturl)))
-    (let ((baselen (length spliturl)))
-      (lambda ()
-        (funcall
-         (cdr (assoc
-               (nth baselen *regular-web-input*)
-               '(list
-                 ("thing" . #'json-thing)
-                 ("available-things" . #'json-available)
-                 ("")
-                )))
-        (let ((command (nth baselen *regular-web-input*)))
-          (cond
-            ((string-equal command "thing")
-             ))))
-        (cond  )
-      *regular-web-input*
-      *key-web-input*
-      ))
+
+(defun thing-translate (string-thing)
+  (or (first-match (thing-symbols) (curry string-thing #'eq-symb))
+      string-thing))
+
+(defun label-translate (string-label)
+  (or (first-match (label-symbols) (curry string-label #'eq-symb))
+      string-label))
+
+(defun listerspec-from-keys (&rest keys)
+  (bind-extracted-keywords (keys _ :thing :lister-type :lister-param)
+    (list* thing lister-type (if lister-param (cons lister-param nil) nil))))
+
+(defun auto-listerspec ()
+  (bind-validated-input
+      ((discard #'identity :rest t)
+       (thing
+        (mkparse-in-list (thing-symbols))
+        :key t :required t)
+       (lister-type
+        (mkparse-in-list *thing-types*)
+        :key t :required t)
+       (lister-param
+        #'identity
+        :key t))
+    (declare (ignore discard))
+    (listerspec-from-keys
+     :thing thing :lister-type lister-type :lister-param lister-param)))
+
+(defun create-json-thing-service (app &key (url-base "/thing-lister/"))
+  (macrolet ((crout (route bindings &body body)
+               `(create-route (app
+                               (strcat url-base ,route "/*")
+                               :content-type "text/json")
+                    ,bindings
+                  ,@body)))
+    (crout "thing-details"
+           ((thing #'identity)
+            (key #'identity))
+           (encode-json-to-string
+            (thing-call-keyfunc
+             (thing-translate thing) (string-unless-number key))))
+    (crout "get-list-of-things"
+           ((params #'identity :rest t))
+           (encode-json-to-string
+            (apply #'get-list-of-things (auto-listerspec) params)))
+    (crout "get-things-length"
+           ((params #'identity :rest t))
+           (encode-json-to-string
+            (apply #'get-things-length (auto-listerspec) params)))))
+
+    '(
+      get-thing
+      thing-call-keyfunc
+      get-things-length
+      get-things-thingtype
+      thing-summary
+      get-list-of-things
+      get-connector-func
+
+      thing-label
+      thing-label-context
+      thing-label-context-plural
+      thing-label-plural)
