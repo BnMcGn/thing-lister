@@ -14,4 +14,6 @@
 	   #:get-things-length
 	   #:get-things-thingtype
 	   #:thing-call-keyfunc
-	   #:def-db-thing))
+	   #:def-db-thing
+     #:thing-symbols
+     #:*thing-types*))
