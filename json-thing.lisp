@@ -52,16 +52,45 @@
            (encode-json-to-string
             (apply #'get-things-length (auto-listerspec) params)))))
 
+(defun thing-details (thing key)
+  (thing-call-keyfunc (thing-translate thing) key))
+
+(defun %remove-listerspec-keys (alist)
+  (nth-value 1 (extract-keywords '(:thing :lister-param :lister-type) alist)))
+
+(defun things (&rest params)
+  (apply #'get-list-of-things
+         (auto-listerspec)
+         (%remove-listerspec-keys params)))
+
+(defun things-length (&rest params)
+  (apply #'get-things-length
+         (auto-listerspec)
+         (%remove-listerspec-keys params)))
+
+(defun things-thingtype (&rest params)
+  (apply #'get-things-thingtype
+         (auto-listerspec)
+         (%remove-listerspec-keys params)))
+
+(defun things-list (&rest params)
+  (apply #'get-list-of-things
+         (auto-listerspec)
+         (%remove-listerspec-keys params)))
+
+(register-json-call 'thing-details)
+(register-json-call 'things)
+(register-json-call 'things-length)
+(register-json-call 'things-thingtype)
+(register-json-call 'things-list)
+(register-json-call 'thing-summary)
+
     '(
       get-thing
-      thing-call-keyfunc
-      get-things-length
-      get-things-thingtype
-      thing-summary
-      get-list-of-things
       get-connector-func
 
       thing-label
       thing-label-context
       thing-label-context-plural
       thing-label-plural)
+
