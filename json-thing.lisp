@@ -78,6 +78,7 @@
          (auto-listerspec)
          (%remove-listerspec-keys params)))
 
+(register-json-call 'thing-symbols)
 (register-json-call 'thing-details)
 (register-json-call 'things)
 (register-json-call 'things-length)
