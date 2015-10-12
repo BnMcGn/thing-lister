@@ -95,8 +95,13 @@
      (third listerspec))
     (:thing
      (car listerspec))
-    (:search
+    (:search 
      (car listerspec))))
+
+(defmacro with-alternate-thingset (thingset &body body)
+  `(let ((*thing-set* ,(car thingset))
+        (*thing-connection-set* ,(second thingset)))
+    ,@body))
 
 
 ;;;
