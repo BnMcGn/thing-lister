@@ -6,13 +6,13 @@
 
 (defvar *thing-set* (make-hash-table :test #'eq))
 
-(defun prep-lister-spec (lspec)
-  (let ((data (if (listp lspec)
+(defun prep-lister-def (ldef)
+  (let ((data (if (listp ldef)
       (list*
        (cons :lister
-       (car lspec))
-       (keyword-splitter (cdr lspec)))
-      (list (cons :lister lspec)))))
+       (car ldef))
+       (keyword-splitter (cdr ldef)))
+      (list (cons :lister ldef)))))
     (aif2 (assoc :limitable data)
     data
     (cons (cons :limitable t) data))))
@@ -46,7 +46,7 @@
 (defvar *thing-connection-set* (make-hash-table :test #'eq))
 
 (defun def-thing-connector (thing name &rest connspec)
-  (push (list* name (prep-lister-spec connspec))
+  (push (list* name (prep-lister-def connspec))
   (gethash thing *thing-connection-set*)))
 
 (defun get-connector-func (thing1 thing2)
@@ -99,9 +99,10 @@
      (car listerspec))))
 
 (defmacro with-alternate-thingset (thingset &body body)
-  `(let ((*thing-set* ,(car thingset))
-        (*thing-connection-set* ,(second thingset)))
-    ,@body))
+  (once-only (thingset)
+    `(let ((*thing-set* (car ,thingset))
+          (*thing-connection-set* (second ,thingset)))
+      ,@body)))
 
 
 ;;;
