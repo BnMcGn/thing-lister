@@ -16,4 +16,5 @@
 	   #:thing-call-keyfunc
 	   #:def-db-thing
      #:thing-symbols
-     #:*thing-types*))
+     #:*thing-types*
+     #:with-alternate-thingset))

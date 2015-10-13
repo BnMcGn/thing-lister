@@ -3,4 +3,11 @@
         #:thing-lister
         #:webhax-test-tools
         #:json-thing-lister
-        #:alexandria))
+        #:cl-json
+        #:fiveam
+        #:alexandria
+        #:webhax-json-call
+        #:drakma))
+
+(in-package :test-thing)
+(def-suite test-thing)

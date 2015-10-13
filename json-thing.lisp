@@ -30,28 +30,6 @@
     (listerspec-from-keys
      :thing thing :lister-type lister-type :lister-param lister-param)))
 
-(defun create-json-thing-service (app &key (url-base "/thing-lister/"))
-  (macrolet ((crout (route bindings &body body)
-               `(create-route (app
-                               (strcat url-base ,route "/*")
-                               :content-type "text/json")
-                    ,bindings
-                  ,@body)))
-    (crout "thing-details"
-           ((thing #'identity)
-            (key #'identity))
-           (encode-json-to-string
-            (thing-call-keyfunc
-             (thing-translate thing) (string-unless-number key))))
-    (crout "get-list-of-things"
-           ((params #'identity :rest t))
-           (encode-json-to-string
-            (apply #'get-list-of-things (auto-listerspec) params)))
-    (crout "get-things-length"
-           ((params #'identity :rest t))
-           (encode-json-to-string
-            (apply #'get-things-length (auto-listerspec) params)))))
-
 (defun thing-details (thing key)
   (thing-call-keyfunc (thing-translate thing) key))
 

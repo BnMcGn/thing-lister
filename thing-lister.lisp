@@ -24,10 +24,10 @@
     (:summary . ,summary)
     ,(when lister
      (cons :lister
-           (prep-lister-spec lister)))
+           (prep-lister-def lister)))
     ,(when searcher
      (cons :searcher
-           (prep-lister-spec searcher))))))
+           (prep-lister-def searcher))))))
 
 (defun get-thing (thing)
   (gethash thing *thing-set*))

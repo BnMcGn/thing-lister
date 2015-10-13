@@ -7,7 +7,12 @@
   :license "Specify license here"
   :depends-on (#:thing-lister #:json-thing-lister
 	#:html-thing-lister
-        #:webhax-test-tools)
+        #:webhax-test-tools
+        #:drakma
+        #:alexandria
+        #:fiveam
+        #:webhax
+        #:cl-json)
   :components ((:file "t/package")
                (:file "t/core")
 	       (:file "t/json")))
