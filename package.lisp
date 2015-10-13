@@ -1,7 +1,7 @@
 ;;;; package.lisp
 
 (defpackage #:thing-lister
-  (:use #:cl #:gadgets #:optima #:alexandria #:anaphora #:thing-labels)
+  (:use #:cl #:gadgets #:alexandria #:anaphora #:thing-labels)
   (:export 
 	   #:def-thing
 	   #:get-thing
