@@ -9,6 +9,7 @@
                                   :thingset *test-thingset*))))
 
 (test (json-thing :depends-on init)
-  (with-alternate-thingset *test-thingset*
+  (with-thingset *test-thingset*
     (is (member "a" (decode-json-from-string
-                     (http-request (localhost "json/thing-symbols")))))))
+                     (http-request (localhost "json/thing-symbols")))
+                :test #'equal))))
