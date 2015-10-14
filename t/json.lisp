@@ -1,6 +1,6 @@
 (in-package :test-thing)
 
-(in-suite :test-thing)
+(in-suite test-thing)
 
 (test init
   (start-test-app (clack.builder:builder
