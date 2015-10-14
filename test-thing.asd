@@ -15,4 +15,4 @@
         #:cl-json)
   :components ((:file "t/package")
                (:file "t/core")
-	       (:file "t/json")))
+	       (:file "t/json" :depends-on ("t/core"))))

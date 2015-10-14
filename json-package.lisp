@@ -2,4 +2,6 @@
   (:use #:cl #:thing-lister #:gadgets
         #:alexandria #:anaphora #:webhax-core #:thing-labels
         #:webhax-validate #:cl-json #:webhax-json-call)
-  )
+  (:export
+   #:json-thing
+   #:execute))

@@ -1,7 +1,5 @@
 (in-package :json-thing-lister)
 
-
-
 (defun thing-translate (string-thing)
   (or (first-match (thing-symbols) (curry string-thing #'eq-symb))
       string-thing))
@@ -35,6 +33,14 @@
 
 (defun %remove-listerspec-keys (alist)
   (nth-value 1 (extract-keywords '(:thing :lister-param :lister-type) alist)))
+
+(defclass json-thing (json-call)
+  ((thingset :initform (list *thing-set* *thing-connection-set*)
+             :initarg :thingset)))
+
+(defmethod execute ((this json-thing))
+  (with-thingset (slot-value this 'thingset)
+   (call-next-method)))
 
 (defun things (&rest params)
   (apply #'get-list-of-things

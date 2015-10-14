@@ -2,10 +2,13 @@
 
 (in-suite :test-thing)
 
-(test json-thing
+(test init
+  (start-test-app (clack.builder:builder
+                   (make-instance 'json-thing
+                                  :login-p nil
+                                  :thingset *test-thingset*))))
+
+(test (json-thing :depends-on init)
   (with-alternate-thingset *test-thingset*
-    (with-clack-app (clack.builder:builder
-                     (make-instance 'webhax-json-call:json-call :login-p nil))
-      (is (= (car (decode-json-from-string
-                   (http-request (localhost "json/thing-symbols"))))
-             "a")))))
+    (is (member "a" (decode-json-from-string
+                     (http-request (localhost "json/thing-symbols")))))))
