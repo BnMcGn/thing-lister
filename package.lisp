@@ -17,4 +17,4 @@
 	   #:def-db-thing
      #:thing-symbols
      #:*thing-types*
-     #:with-alternate-thingset))
+     #:with-thingset))

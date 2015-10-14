@@ -98,7 +98,7 @@
     (:search 
      (car listerspec))))
 
-(defmacro with-alternate-thingset (thingset &body body)
+(defmacro with-thingset (thingset &body body)
   (once-only (thingset)
     `(let ((*thing-set* (car ,thingset))
           (*thing-connection-set* (second ,thingset)))

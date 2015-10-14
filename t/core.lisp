@@ -12,7 +12,7 @@
   '(a rapid ochre vulpus lofted above some prone canines))
 
 
-(with-alternate-thingset *test-thingset*
+(with-thingset *test-thingset*
   (def-thing
       'a
       (rcurry #'nth data-a)
@@ -40,4 +40,5 @@
                                                xval))
                      (range (length data-a))))))
 
+(def-suite test-thing)
 
