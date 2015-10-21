@@ -13,8 +13,9 @@
     (list* thing lister-type (if lister-param (cons lister-param nil) nil))))
 
 (defun auto-listerspec ()
+  (print *regular-web-input*)
   (bind-validated-input
-      ((discard #'identity :rest t)
+      ((discard (lambda (x) (values x t)) :rest t)
        (thing
         (mkparse-in-list (thing-symbols))
         :key t :required t)

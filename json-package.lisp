@@ -1,7 +1,7 @@
 (defpackage #:json-thing-lister
   (:use #:cl #:thing-lister #:gadgets
         #:alexandria #:anaphora #:webhax-core #:thing-labels
-        #:webhax-validate #:cl-json #:webhax-json-call)
+        #:webhax-validate #:cl-json #:webhax-json-call #:webhax)
   (:export
    #:json-thing
    #:execute))

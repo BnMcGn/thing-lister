@@ -1,7 +1,7 @@
 (in-package #:test-thing)
 
 (eval-always
-  (defvar *test-thingset*
+  (defparameter *test-thingset*
     (list (make-hash-table :test #'eq)
           (make-hash-table :test #'eq))))
 
@@ -10,7 +10,6 @@
 
 (defparameter data-b
   '(a rapid ochre vulpus lofted above some prone canines))
-
 
 (with-thingset *test-thingset*
   (def-thing

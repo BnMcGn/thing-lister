@@ -9,7 +9,11 @@
                                   :thingset *test-thingset*))))
 
 (test (json-thing :depends-on init)
-  (with-thingset *test-thingset*
-    (is (member "a" (decode-json-from-string
-                     (http-request (localhost "json/thing-symbols")))
-                :test #'equal))))
+  (is (member "a" (decode-json-from-string
+                   (http-request (localhost "json/thing-symbols")))
+              :test #'equal))
+  (print (decode-json-from-string
+          (http-request (localhost "json/things?lister-type=thing&thing=a"))))
+  (stop-test-app))
+
+
