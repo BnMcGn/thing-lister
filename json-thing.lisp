@@ -1,11 +1,11 @@
 (in-package :json-thing-lister)
 
 (defun thing-translate (string-thing)
-  (or (first-match (thing-symbols) (curry string-thing #'eq-symb))
+  (or (first-match (thing-symbols) (curry  #'eq-symb string-thing))
       string-thing))
 
 (defun label-translate (string-label)
-  (or (first-match (label-symbols) (curry string-label #'eq-symb))
+  (or (first-match (label-symbols) (curry #'eq-symb string-label))
       string-label))
 
 (defun listerspec-from-keys (&rest keys)
@@ -58,17 +58,11 @@
          (auto-listerspec)
          (%remove-listerspec-keys params)))
 
-(defun things-list (&rest params)
-  (apply #'get-list-of-things
-         (auto-listerspec)
-         (%remove-listerspec-keys params)))
-
 (register-json-call 'thing-symbols)
 (register-json-call 'thing-details)
 (register-json-call 'things)
 (register-json-call 'things-length)
 (register-json-call 'things-thingtype)
-(register-json-call 'things-list)
 (register-json-call 'thing-summary)
 (register-json-symbols '(:thing :lister-type :lister-param))
 
