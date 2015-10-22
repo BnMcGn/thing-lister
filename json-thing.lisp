@@ -70,6 +70,7 @@
 (register-json-call 'things-thingtype)
 (register-json-call 'things-list)
 (register-json-call 'thing-summary)
+(register-json-symbols '(:thing :lister-type :lister-param))
 
     '(
       get-thing

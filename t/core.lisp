@@ -19,7 +19,7 @@
     :lister (list
              (lambda (&rest drop)
                (declare (ignore drop))
-               data-a)))
+               (range (length data-a)))))
   (def-thing
       'b
     (rcurry #'nth data-b)
@@ -27,7 +27,7 @@
     :lister (list
              (lambda (&rest drop)
                (declare (ignore drop))
-               data-b)))
+               (range (length data-b)))))
   (def-thing-connector 'a 'same-length
     (lambda (&rest x &aux (xlen (length (nth x data-a))))
       (remove-if-not (lambda (y)

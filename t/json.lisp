@@ -12,8 +12,16 @@
   (is (member "a" (decode-json-from-string
                    (http-request (localhost "json/thing-symbols")))
               :test #'equal))
-  (print (decode-json-from-string
-          (http-request (localhost "json/things?lister-type=thing&thing=a"))))
+  (is  (= 0 (car
+             (decode-json-from-string
+              (http-request
+               (localhost "json/things?lister-type=thing&thing=a"))))))
+  (is (= 9 (decode-json-from-string
+            (http-request
+             (localhost "json/things-length?lister-type=thing&thing=b")))))
+  (is (equal "b" (decode-json-from-string
+            (http-request
+             (localhost "json/things-thingtype?lister-type=thing&thing=b")))))
   (stop-test-app))
 
 
