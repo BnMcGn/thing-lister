@@ -30,7 +30,8 @@
            (prep-lister-def searcher))))))
 
 (defun get-thing (thing)
-  (gethash thing *thing-set*))
+  (or (gethash thing *thing-set*)
+      (error "Thing not found")))
 
 (defun thing-symbols ()
   "List of things currently defined"

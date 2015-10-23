@@ -22,6 +22,14 @@
   (is (equal "b" (decode-json-from-string
             (http-request
              (localhost "json/things-thingtype?lister-type=thing&thing=b")))))
+  (is (equal "ochre"
+             (decode-json-from-string
+              (http-request
+               (localhost "json/thing-details/b/2")))))
+  (is (equal "FOX"
+             (decode-json-from-string
+              (http-request
+               (localhost "json/thing-summary/a/3")))))
   (stop-test-app))
 
 

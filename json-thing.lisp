@@ -65,6 +65,7 @@
 (register-json-call 'things-thingtype)
 (register-json-call 'thing-summary)
 (register-json-symbols '(:thing :lister-type :lister-param))
+(register-json-symbol-func #'thing-symbols)
 
     '(
       get-thing
