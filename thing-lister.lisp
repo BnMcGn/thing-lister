@@ -8,14 +8,14 @@
 
 (defun prep-lister-def (ldef)
   (let ((data (if (listp ldef)
-      (list*
-       (cons :lister
-       (car ldef))
-       (keyword-splitter (cdr ldef)))
-      (list (cons :lister ldef)))))
+                  (list*
+                   (cons :lister
+                         (car ldef))
+                   (keyword-splitter (cdr ldef)))
+                  (list (cons :lister ldef)))))
     (aif2 (assoc :limitable data)
-    data
-    (cons (cons :limitable t) data))))
+          data
+          (cons (cons :limitable t) data))))
 
 (defun def-thing (thingname keyfunc summary &key label lister searcher)
   (setf (gethash thingname *thing-set*)
@@ -48,29 +48,46 @@
 
 (defun def-thing-connector (thing name &rest connspec)
   (push (list* name (prep-lister-def connspec))
-  (gethash thing *thing-connection-set*)))
+        (gethash thing *thing-connection-set*)))
 
+;;;Warning: this assumes that thing2==name
 (defun get-connector-func (thing1 thing2)
   (dolist (x (gethash thing1 *thing-connection-set*))
     (when (eq (car x) thing2)
       (return-from get-connector-func (assoc-cdr :lister (cdr x))))))
 
-;The parameters of get-lister constitute a listerspec
-(defun get-lister (thing ltype &rest params)
-  (labels ((add-params (thing params)
-             (if params
-                 (cons (cons :parameters params) thing)
-                 thing)))
-    (case ltype
-      (:connector
-       (dolist (x (gethash thing *thing-connection-set*))
-         (when (eq (car x) (car params))
-           (return (add-params (cdr x) (cdr params))))))
+(defun get-connector-name (connspec)
+  (car connspec))
+
+(defun get-connector-other-things (connspec)
+  (aif (getf connspec :other-thing-func)
+       (funcall it)
+       (aif (getf connspec :other-thing)
+            (ensure-list it)
+            (list (get-connector-name connspec)))))
+
+;;;The parameters of get-lister constitute a listerspec
+(defun get-lister (&rest params)
+  (bind-extracted-keywords (params params :thing :lister-type :name
+                                                 :other-thing)
+    (unless thing (error "Needs a thing"))
+    (case lister-type
       (:thing
        (assoc-cdr :lister (get-thing thing)))
-      (:search
+      (:search ;FIXME: search likely needs a rethink. Legacy.
        (let ((res (assoc-cdr :searcher (get-thing thing))))
-         (add-params res params)))
+         (if params (cons (cons :parameters params) res) res)))
+      (:connector
+       (dolist (x (gethash thing *thing-connection-set*))
+         (return-when
+          (and
+           (if name (eq name (get-connector-name x)) t)
+           (if other-thing
+               (set-equal (ensure-list other-thing)
+                          (get-connector-other-things x)) t)
+           x))
+         )
+       (error "Connector not found"))
       (otherwise (error "No such lister type")))))
 
 (defun get-list-of-things (listerspec &rest params)
@@ -96,7 +113,7 @@
      (third listerspec))
     (:thing
      (car listerspec))
-    (:search 
+    (:search
      (car listerspec))))
 
 (defmacro with-thingset (thingset &body body)
