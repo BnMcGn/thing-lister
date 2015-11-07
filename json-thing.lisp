@@ -12,6 +12,13 @@
   (bind-extracted-keywords (keys _ :thing :lister-type :lister-param)
     (list* thing lister-type (if lister-param (cons lister-param nil) nil))))
 
+(defun listerspec-from-keys (&rest keys)
+  (bind-extracted-keywords (keys _ :thing :lister-type :lister-param
+                                          :lister-name :other-thing)
+    (strip-keywords
+     (list :thing thing :lister-type lister-type :lister-param
+           lister-param :name lister-name :other-thing other-thing))))
+
 (defun auto-listerspec ()
   (print *regular-web-input*)
   (bind-validated-input
@@ -24,10 +31,17 @@
         :key t :required t)
        (lister-param
         #'identity
+        :key t)
+       (lister-name
+        (mkparse-in-list (thing-connector-names))
+        :key t)
+       (other-thing
+        (mkparse-in-list (thing-symbols))
         :key t))
     (declare (ignore discard))
     (listerspec-from-keys
-     :thing thing :lister-type lister-type :lister-param lister-param)))
+     :thing thing :lister-type lister-type :lister-param lister-param
+     :lister-name lister-name :other-thing other-thing)))
 
 (defun thing-details (thing key)
   (thing-call-keyfunc (thing-translate thing) key))

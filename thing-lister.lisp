@@ -59,6 +59,11 @@
 (defun get-connector-name (connspec)
   (car connspec))
 
+(defun thing-connector-names ()
+  (collecting
+    (dolist (item *thing-connection-set*)
+      (collect (get-connector-name item)))))
+
 (defun get-connector-other-things (connspec)
   (aif (getf connspec :other-thing-func)
        (funcall it)
@@ -90,6 +95,45 @@
        (error "Connector not found"))
       (otherwise (error "No such lister type")))))
 
+(defun get-lister-sort-keys (listerspec)
+  )
+
+;;;FIXME: Not optimal for long lists of things. Should be able to override with
+;;;custom function.
+;;;FIXME: Doesn't handle thingtype info
+(defun thing-next (listerspec key &key order-by loop)
+  (let ((things (get-list-of-things listerspec :order-by order-by)))
+    (unless (> 1 (length things))
+      (return-from thing-next nil))
+    (let ((rem (nth-value 1 (divide-list things (curry #'equal key)))))
+      (if (> 1 (length rem))
+          (second rem)
+          (if loop
+              (car things)
+              nil)))))
+
+(defun thing-previous (listerspec key &key order-by loop)
+  (let ((things (get-list-of-things listerspec :order-by order-by)))
+    (unless (> 1 (length things))
+      (return-from thing-previous nil))
+    (let ((head (divide-list things (curry #'equal key))))
+      (if (> 0 (length head))
+          (last-car head)
+          (if loop
+              (last-car things)
+              nil)))))
+
+(defun thing-all-next (listerspec key &key order-by)
+  (cdr
+   (nth-value
+    1 (divide-list (get-list-of-things listerspec :order-by order-by)
+                   (curry #'equal key)))))
+
+(defun thing-all-previous (listerspec key &key order-by)
+  (nth-value
+   0 (divide-list (get-list-of-things listerspec :order-by order-by)
+                  (curry #'equal key))))
+
 (defun get-list-of-things (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (apply (assoc-cdr :lister lister)
@@ -106,15 +150,15 @@
 
 (defparameter *thing-types* '(:thing :connector :search))
 
-(defun get-things-thingtype (listerspec &optional (index 0))
-  (declare (ignore index))
-  (case (second listerspec)
-    (:connector
-     (third listerspec))
-    (:thing
-     (car listerspec))
-    (:search
-     (car listerspec))))
+(defun get-things-thingtype (listerspec)
+  (bind-extracted-keywords (listerspec _ :thing :other-thing :lister-type)
+    (case lister-type
+      (:connector
+       other-thing)
+      (:thing
+       thing)
+      (:search
+       thing))))
 
 (defmacro with-thingset (thingset &body body)
   (once-only (thingset)
