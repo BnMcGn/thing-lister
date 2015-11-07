@@ -30,6 +30,10 @@
              (decode-json-from-string
               (http-request
                (localhost "json/thing-summary/a/3")))))
+  (print (decode-json-from-string
+          (http-request
+           (localhost "json/things?lister-type=connector&lister-name=haz-letters&thing=b&lister-param=3"))))
   (stop-test-app))
 
 
+ 
