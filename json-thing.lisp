@@ -30,7 +30,7 @@
         (mkparse-in-list *thing-types*)
         :key t :required t)
        (lister-param
-        #'identity
+        (lambda (x) (values x t))
         :key t)
        (lister-name
         (mkparse-in-list (thing-connector-names))
@@ -57,36 +57,32 @@
   (with-thingset (slot-value this 'thingset)
    (call-next-method)))
 
-(defun things (&rest params)
-  (apply #'get-list-of-things
-         (auto-listerspec)
-         (%remove-listerspec-keys params)))
+(defmacro defun/listerspec (name function)
+  `(defun ,name (&rest params)
+     (apply (function ,function)
+            (auto-listerspec)
+            (%remove-listerspec-keys params))))
 
-(defun things-length (&rest params)
-  (apply #'get-things-length
-         (auto-listerspec)
-         (%remove-listerspec-keys params)))
-
-(defun things-thingtype (&rest params)
-  (apply #'get-things-thingtype
-         (auto-listerspec)
-         (%remove-listerspec-keys params)))
+(defun/listerspec things get-list-of-things)
+(defun/listerspec things-length get-things-length)
+(defun/listerspec things-thingtype get-things-thingtype)
+(defun/listerspec previous thing-previous)
+(defun/listerspec next thing-next)
+(defun/listerspec all-next thing-all-next)
+(defun/listerspec all-previous thing-all-previous)
 
 (register-json-call 'thing-symbols)
 (register-json-call 'thing-details)
 (register-json-call 'things)
 (register-json-call 'things-length)
 (register-json-call 'things-thingtype)
+(register-json-call 'previous)
+(register-json-call 'next)
+(register-json-call 'all-next)
+(register-json-call 'all-previous)
 (register-json-call 'thing-summary)
-(register-json-symbols '(:thing :lister-type :lister-param))
+(register-json-symbols '(:thing :lister-type :lister-param :lister-name
+                         :other-thing))
 (register-json-symbol-func #'thing-symbols)
 
-    '(
-      get-thing
-      get-connector-func
-
-      thing-label
-      thing-label-context
-      thing-label-context-plural
-      thing-label-plural)
 

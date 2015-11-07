@@ -96,7 +96,7 @@
       (otherwise (error "No such lister type")))))
 
 (defun get-lister-sort-keys (listerspec)
-  )
+  (getf (apply #'get-lister listerspec) :sort-keys))
 
 ;;;FIXME: Not optimal for long lists of things. Should be able to override with
 ;;;custom function.
