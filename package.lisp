@@ -17,4 +17,9 @@
 	   #:def-db-thing
      #:thing-symbols
      #:*thing-types*
-     #:with-thingset))
+     #:with-thingset
+     #:thing-connector-names
+     #:thing-next
+     #:thing-previous
+     #:thing-all-next
+     #:thing-all-previous))

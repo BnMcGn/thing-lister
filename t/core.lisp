@@ -22,22 +22,23 @@
                (range (length data-a)))))
   (def-thing
       'b
-    (rcurry #'nth data-b)
+      (rcurry #'nth data-b)
     #'princ-to-string
     :lister (list
              (lambda (&rest drop)
                (declare (ignore drop))
                (range (length data-b)))))
   (def-thing-connector 'a 'same-length
-    (lambda (&rest x &aux (xlen (length (nth x data-a))))
+    (lambda (&rest x &aux (xlen (length (mkstr (nth (car x) data-a)))))
       (remove-if-not (lambda (y)
-                       (= (length (nth y data-b)) xlen))
-                     (range (xlen)))))
+                       (= (length (mkstr (nth y data-b))) xlen))
+                     (range (length data-b)))))
   (def-thing-connector 'b 'haz-letters
-    (lambda (&rest x &aux (xval (coerce (nth x data-b) 'list)))
-      (remove-if-not (lambda (y) (intersection (coerce (nth y data-a) 'list)
-                                               xval))
+    (lambda (&rest x &aux
+                       (xval (coerce (mkstr (nth (car x) data-b)) 'list)))
+      (remove-if-not (lambda (y) (intersection
+                                  (coerce (mkstr (nth y data-a)) 'list)
+                                  xval))
                      (range (length data-a))))))
 
 (def-suite test-thing)
-

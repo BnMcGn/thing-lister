@@ -30,7 +30,7 @@
         (mkparse-in-list *thing-types*)
         :key t :required t)
        (lister-param
-        (lambda (x) (values x t))
+        (lambda (x) (values (string-unless-number x) t))
         :key t)
        (lister-name
         (mkparse-in-list (thing-connector-names))
@@ -47,7 +47,8 @@
   (thing-call-keyfunc (thing-translate thing) key))
 
 (defun %remove-listerspec-keys (alist)
-  (nth-value 1 (extract-keywords '(:thing :lister-param :lister-type) alist)))
+  (nth-value 1 (extract-keywords '(:thing :lister-param :lister-type
+                                   :lister-name :other-thing) alist)))
 
 (defclass json-thing (json-call)
   ((thingset :initform (list *thing-set* *thing-connection-set*)

@@ -61,8 +61,9 @@
 
 (defun thing-connector-names ()
   (collecting
-    (dolist (item *thing-connection-set*)
-      (collect (get-connector-name item)))))
+    (dolist (conn (hash-table-values *thing-connection-set*))
+      (dolist (item conn)
+        (collect (get-connector-name item))))))
 
 (defun get-connector-other-things (connspec)
   (aif (getf connspec :other-thing-func)
@@ -73,26 +74,31 @@
 
 ;;;The parameters of get-lister constitute a listerspec
 (defun get-lister (&rest params)
-  (bind-extracted-keywords (params params :thing :lister-type :name
-                                                 :other-thing)
+  (bind-extracted-keywords (params _ :thing :lister-type :name
+                                   :other-thing :lister-param)
     (unless thing (error "Needs a thing"))
     (case lister-type
       (:thing
        (assoc-cdr :lister (get-thing thing)))
       (:search ;FIXME: search likely needs a rethink. Legacy.
        (let ((res (assoc-cdr :searcher (get-thing thing))))
-         (if params (cons (cons :parameters params) res) res)))
+         (if lister-param
+             (cons (cons :parameters lister-param) res)
+             res)))
       (:connector
-       (dolist (x (gethash thing *thing-connection-set*))
-         (return-when
-          (and
-           (if name (eq name (get-connector-name x)) t)
-           (if other-thing
-               (set-equal (ensure-list other-thing)
-                          (get-connector-other-things x)) t)
-           x))
-         )
-       (error "Connector not found"))
+       (aif
+        (dolist (x (gethash thing *thing-connection-set*))
+          (return-on-true
+           (and
+            (if name (eq name (get-connector-name x)) t)
+            (if other-thing
+                (set-equal (ensure-list other-thing)
+                           (get-connector-other-things x)) t)
+            (cdr x))))
+        (if lister-param
+            (cons (list :parameters lister-param) it)
+            it)
+        (error "Connector not found")))
       (otherwise (error "No such lister type")))))
 
 (defun get-lister-sort-keys (listerspec)
@@ -166,7 +172,6 @@
           (*thing-connection-set* (second ,thingset)))
       ,@body)))
 
-
 ;;;
 ; db-thing
 ;;;
@@ -191,7 +196,8 @@
                           (sql-stuff:unexecuted
                             (apply #'sql-stuff:get-column
                                    table
-                                   (sql-stuff:get-table-pkey table) params)))))
+                                   (sql-stuff:get-table-pkey table)
+                                   params)))))
       :searcher (when search-cols
                   (list
                    (lambda (text &rest params)
