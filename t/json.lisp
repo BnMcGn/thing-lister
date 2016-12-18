@@ -34,6 +34,9 @@
             (decode-json-from-string
              (http-request
               (localhost "json/things?lister-type=connector&lister-name=haz-letters&thing=b&lister-param=0"))))))
+  (decode-json-from-string
+   (http-request
+    (localhost "json/next/3?lister-type=thing&thing=b")))
   (stop-test-app))
 
 

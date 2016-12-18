@@ -15,7 +15,7 @@
   (format nil "~athing/~(~a~)/~a" *html-thing-baseurl* thing key))
 
 (defun connector-link (thing thing2 key)
-  (format nil "~aconnector/~(~a~)/~(~a~)/~a" *html-thing-baseurl* 
+  (format nil "~aconnector/~(~a~)/~(~a~)/~a" *html-thing-baseurl*
 	  thing thing2 key))
 
 (defun search-link (thing)
@@ -60,13 +60,13 @@
     (collect :@main-content
       (lambda (key)
 	(html-out
-	  (:h2 
-	   (str (concatenate 'string 
+	  (:h2
+	   (str (concatenate 'string
 		  (thing-label thing) ": " (thing-summary thing key)))))))
     (collect :@main-content
       (lambda (key)
 	(display-thing-actions thing key)))
-    (collect :@main-content 
+    (collect :@main-content
       (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
 	(lambda (key)
 	  (funcall dfunc (thing-call-keyfunc thing key)))))
@@ -92,21 +92,21 @@
 (defun url-reset-keys (url &rest newvals)
   (let ((purl (ystok.uri:parse-uri url))
         (keys (mapcar #'car newvals)))
-    (setf 
+    (setf
      (ystok.uri:uri-query purl)
-     (concatenate 
+     (concatenate
       'list
-      (remove-if-member (ystok.uri:uri-query purl) keys 
+      (remove-if-member (ystok.uri:uri-query purl) keys
                         :key (lambda (x) (car x))
                         :test #'equal)
       newvals))
     (ystok.uri:render-uri purl nil t t)))
 
 (def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))
-(def-webspecial ~pagequantity~ nil 
+(def-webspecial ~pagequantity~ nil
   (>>integer :emsg "~pagequantity~: not an integer"))
 
-(defun simple-pager-display (&key total-length (url *html-thing-current-url*) 
+(defun simple-pager-display (&key total-length (url *html-thing-current-url*)
 			     page-quantity (page-index 1))
   (let* ((page-quantity (or ~pagequantity~ page-quantity))
          (page-index (or ~pageindex~ page-index))
@@ -118,15 +118,15 @@
     (html-out
       (:span
        (if (> prev-val 0)
-           (htm 
+           (htm
             (:a 
-             :href (url-reset-keys 
-                    url 
+             :href (url-reset-keys
+                    url
                     `("~pageindex~" . ,prev-val)
                     url-params)
              "&lt; Previous"))
            (str "&lt; Previous"))
-       (if (and total-length (< total-length 
+       (if (and total-length (< total-length
                                 (+ page-index (or page-quantity 1))))
            (str " Next &gt;")
            (htm
@@ -142,7 +142,7 @@
       (collect :@title
 	(lambda (lspec &rest params)
 	  (declare (ignore params))
-	  (format nil "Things: ~a" 
+	  (format nil "Things: ~a"
 	    (funcall (assoc-cdr :label (get-thing (car lspec))) (car lspec)))))
       (collect :@main-content
 	(lambda (lspec &rest params)
@@ -150,10 +150,10 @@
 	  (let ((llength (get-things-length lspec))
 		(thingtype (get-things-thingtype lspec))
 		;FIXME: Set ~pagequantity~ default somewhere
-		(~pagequantity~ (or ~pagequantity~ 40))) 
+		(~pagequantity~ (or ~pagequantity~ 40)))
 	    (simple-pager-display :total-length llength)
 	    (html-out
-	      (dolist (itm (get-list-of-things 
+	      (dolist (itm (get-list-of-things
 			    lspec :limit ~pagequantity~
 			    :offset (1- (or ~pageindex~ 1))))
 		(htm (:div
@@ -162,7 +162,7 @@
 			   (str (thing-summary thingtype itm)))
 		       (display-thing-actions thingtype itm))))))
 	    (simple-pager-display :total-length llength))))))
-	  
+
 (define-page lister-page (#'lister-parts) (#'two-side-columns))
 
 ;;;;

@@ -109,10 +109,10 @@
 ;;;FIXME: Doesn't handle thingtype info
 (defun thing-next (listerspec key &key order-by loop)
   (let ((things (get-list-of-things listerspec :order-by order-by)))
-    (unless (> 1 (length things))
+    (unless (< 1 (length things))
       (return-from thing-next nil))
     (let ((rem (nth-value 1 (divide-list things (curry #'equal key)))))
-      (if (> 1 (length rem))
+      (if (< 1 (length rem))
           (second rem)
           (if loop
               (car things)
@@ -120,10 +120,10 @@
 
 (defun thing-previous (listerspec key &key order-by loop)
   (let ((things (get-list-of-things listerspec :order-by order-by)))
-    (unless (> 1 (length things))
+    (unless (< 1 (length things))
       (return-from thing-previous nil))
     (let ((head (divide-list things (curry #'equal key))))
-      (if (> 0 (length head))
+      (if (< 0 (length head))
           (last-car head)
           (if loop
               (last-car things)
@@ -143,8 +143,8 @@
 (defun get-list-of-things (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (apply (assoc-cdr :lister lister)
-     `(,@(assoc-cdr :parameters lister)
-         ,@params))))
+           `(,@(strip-keywords (assoc-cdr :parameters lister))
+             ,@(strip-keywords params)))))
 
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
