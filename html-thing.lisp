@@ -8,7 +8,7 @@
   (setf (gethash thingname *thing-display-set*)
 	dispfunc))
 
-(defvar *html-thing-baseurl* "/")
+(defvar *html-thing-baseurl* "/things/")
 (defvar *html-thing-current-url* "")
 
 (defun thing-link (thing key)
@@ -102,6 +102,7 @@
       newvals))
     (ystok.uri:render-uri purl nil t t)))
 
+;;FIXME: Could use webhax-validate?
 (def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))
 (def-webspecial ~pagequantity~ nil
   (>>integer :emsg "~pagequantity~: not an integer"))
@@ -183,3 +184,40 @@
      (:button 
       :onclick (ps-inline* `(funcall ,(third act) ,thing))
       (str (thing-label (second act)))))))
+
+
+;;;;
+;; Thing-lister as clack middleware
+;;;;
+
+(define-middleware thing-component ()
+  (url-case
+    (:things
+     (url-case
+       (:thing
+        (bind-validated-input
+            ((thing (:pickone (thing-symbols)))
+             (key :integer))
+          ;;FIXME: webspecials? bind *webhax-output* to string?
+          (thing-pages thing key)))
+       (:things
+        (bind-validated-input
+            ((thing (:pickone (thing-symbols))))
+          (lister-page (list thing :thing))))
+       (:thing-search
+        (bind-validated-input
+            ((thing (:pickone (thing-symbols)))
+             &key
+             (query :string))
+          (let ((*html-thing-current-url* (url-from-env *web-env*)))
+            (lister-page (list thing :search query)))))
+       (:connector
+        (bind-validated-input
+            ((thing (:pickone (thing-symbols)))
+             ;;FIXME: Should also include thing-symbols under name? Can't
+             ;; remember how that is implemented.
+             (name (:pickone (thing-connector-names)))
+             (key :integer))
+          (lister-page (list thing name key))))))
+    (otherwise
+     (next-app))))
