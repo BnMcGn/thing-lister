@@ -9,4 +9,5 @@
 	   #:*html-thing-current-url*
 	   #:lister-page
 	   #:thing-pages
-	   #:def-thing-action))
+	   #:def-thing-action
+     #:thing-component))
