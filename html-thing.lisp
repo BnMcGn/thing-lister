@@ -45,31 +45,32 @@
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
       (lambda (x)
-	(declare (ignore x))
-	(html-out
-	  (:h3 "Search " (str (thing-label thing)))
-	  (:form :method "get" :action (search-link thing)
-		 (:input :type "text" :name "query")
-		 (:input :type "submit" :value "Search"))))
+        (declare (ignore x))
+        (html-out
+          (:h3 "Search " (str (thing-label thing)))
+          (:form :method "get" :action (search-link thing)
+                 (:input :type "text" :name "query")
+                 (:input :type "submit" :value "Search"))))
       (lambda (x)
-	(declare (ignore x))
-	nil)))
+        (declare (ignore x))
+        nil)))
 
 (defun thing-display-parts (thing &key previous)
   (collecting-hash-table (:existing (or previous (make-hash-table)))
     (collect :@main-content
       (lambda (key)
-	(html-out
-	  (:h2
-	   (str (concatenate 'string
-		  (thing-label thing) ": " (thing-summary thing key)))))))
+        (html-out
+          (:h2
+           (str (concatenate 'string
+                             (thing-label thing) ": "
+                             (thing-summary thing key)))))))
     (collect :@main-content
       (lambda (key)
-	(display-thing-actions thing key)))
+        (display-thing-actions thing key)))
     (collect :@main-content
       (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
-	(lambda (key)
-	  (funcall dfunc (thing-call-keyfunc thing key)))))
+        (lambda (key)
+          (funcall dfunc (thing-call-keyfunc thing key)))))
     (collect :@side-content (searchbox-display-func thing))
     (dolist (conn (gethash thing *thing-connection-set*))
       (collect :@side-content (connection-display-func thing (car conn))))
@@ -140,30 +141,30 @@
 
 (defun lister-parts (previous)
   (collecting-hash-table (:existing (or previous (make-hash-table)))
-      (collect :@title
-	(lambda (lspec &rest params)
-	  (declare (ignore params))
-	  (format nil "Things: ~a"
-            (funcall (assoc-cdr :label (get-thing (getf lspec :thing)))
-                     (getf lspec :thing)))))
-      (collect :@main-content
-	(lambda (lspec &rest params)
-	  (declare (ignore params))
-	  (let ((llength (get-things-length lspec))
-		(thingtype (get-things-thingtype lspec))
-		;FIXME: Set ~pagequantity~ default somewhere
-		(~pagequantity~ (or ~pagequantity~ 40)))
-	    (simple-pager-display :total-length llength)
-	    (html-out
-	      (dolist (itm (get-list-of-things
-			    lspec :limit ~pagequantity~
-			    :offset (1- (or ~pageindex~ 1))))
-		(htm (:div
-		      (:span
-		       (:a :href (thing-link thingtype itm)
-			   (str (thing-summary thingtype itm)))
-		       (display-thing-actions thingtype itm))))))
-	    (simple-pager-display :total-length llength))))))
+    (collect :@title
+      (lambda (lspec &rest params)
+        (declare (ignore params))
+        (format nil "Things: ~a"
+                (funcall (assoc-cdr :label (get-thing (getf lspec :thing)))
+                         (getf lspec :thing)))))
+    (collect :@main-content
+      (lambda (lspec &rest params)
+        (declare (ignore params))
+        (let ((llength (get-things-length lspec))
+              (thingtype (get-things-thingtype lspec))
+              ;;FIXME: Set ~pagequantity~ default somewhere
+              (~pagequantity~ (or ~pagequantity~ 40)))
+          (simple-pager-display :total-length llength)
+          (html-out
+            (dolist (itm (get-list-of-things
+                          lspec :limit ~pagequantity~
+                          :offset (1- (or ~pageindex~ 1))))
+              (htm (:div
+                    (:span
+                     (:a :href (thing-link thingtype itm)
+                         (str (thing-summary thingtype itm)))
+                     (display-thing-actions thingtype itm))))))
+          (simple-pager-display :total-length llength))))))
 
 (define-page lister-page (#'lister-parts) (#'two-side-columns))
 
@@ -199,8 +200,8 @@
          (:thing
           (bind-validated-input
               ((thing (:pickone :options (thing-symbols)))
-               (key :integer))
-            ;;FIXME: webspecials? bind *webhax-output* to string?
+               (key (:or :integer :string)))
+            ;;FIXME: webspecials?
             (thing-pages thing key)))
          (:things
           (bind-validated-input
@@ -212,7 +213,8 @@
                &key
                (query :string))
             (let ((*html-thing-current-url* (url-from-env *web-env*)))
-              (lister-page (list thing :search query)))))
+              (lister-page (list :thing thing :lister-type :search
+                                 :lister-param query)))))
          (:connector
           (bind-validated-input
               ((thing (:pickone :options (thing-symbols)))
