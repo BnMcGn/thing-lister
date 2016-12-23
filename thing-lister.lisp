@@ -41,8 +41,14 @@
   (apply (assoc-cdr :keyfunc (get-thing thing)) params))
 
 (defun thing-summary (thing key)
-  (funcall (assoc-cdr :summary (get-thing thing))
-     (thing-call-keyfunc thing key)))
+  (let ((res (funcall (assoc-cdr :summary (get-thing thing))
+                      (thing-call-keyfunc thing key))))
+    (unless (and res (stringp res))
+      (error
+       (format nil
+               "Summary function for thingtype ~a should return string or NIL"
+               thing)))
+    res))
 
 (defvar *thing-connection-set* (make-hash-table :test #'eq))
 
