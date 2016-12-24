@@ -20,24 +20,14 @@
            lister-param :name lister-name :other-thing other-thing))))
 
 (defun auto-listerspec ()
-  (print *regular-web-input*)
   (bind-validated-input
-      ((discard (lambda (x) (values x t)) :rest t)
-       (thing
-        (mkparse-in-list (thing-symbols))
-        :key t :required t)
-       (lister-type
-        (mkparse-in-list *thing-types*)
-        :key t :required t)
-       (lister-param
-        (lambda (x) (values (string-unless-number x) t))
-        :key t)
-       (lister-name
-        (mkparse-in-list (thing-connector-names))
-        :key t)
-       (other-thing
-        (mkparse-in-list (thing-symbols))
-        :key t))
+      ((discard :string :rest t)
+       &key
+       (thing (:pickone :options (thing-symbols)))
+       (lister-type (:pickone :options *thing-types*))
+       (lister-param (:or :number :string))
+       (lister-name (:pickone :options (thing-connector-names)))
+       (other-thing (:pickone :options (thing-symbols))))
     (declare (ignore discard))
     (listerspec-from-keys
      :thing thing :lister-type lister-type :lister-param lister-param
