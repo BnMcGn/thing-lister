@@ -1,11 +1,11 @@
 (in-package :json-thing-lister)
 
 (defun thing-translate (string-thing)
-  (or (first-match (thing-symbols) (curry  #'eq-symb string-thing))
+  (or (first-match (curry  #'eq-symb string-thing) (thing-symbols))
       string-thing))
 
 (defun label-translate (string-label)
-  (or (first-match (label-symbols) (curry #'eq-symb string-label))
+  (or (first-match (curry #'eq-symb string-label) (label-symbols))
       string-label))
 
 (defun listerspec-from-keys (&rest keys)
