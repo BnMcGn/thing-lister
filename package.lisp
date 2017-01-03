@@ -22,4 +22,5 @@
      #:thing-next
      #:thing-previous
      #:thing-all-next
-     #:thing-all-previous))
+     #:thing-all-previous
+     #:wrap-with-paging-handler))

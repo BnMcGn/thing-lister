@@ -222,3 +222,14 @@
                                          (sql-stuff:colm table x))
                                        search-cols)
                                params)))))))))
+
+(defun wrap-with-paging-handler (func)
+  "Func is a function that returns a list. Returns that function wrapped in a closure that strips the :offset and :limit keywords from its parameters, calls the function with the remainder, and limits the resulting list accordingly."
+  (lambda (&rest params)
+    (bind-extracted-keywords (params xparams :offset :limit)
+      (let ((res (apply func xparams)))
+        (when offset
+          (setf res (nthcdr offset res)))
+        (if limit
+            (subseq res 0 limit)
+            res)))))
