@@ -10,4 +10,5 @@
 	   #:lister-page
 	   #:thing-pages
 	   #:def-thing-action
-     #:thing-component))
+     #:thing-component
+     #:things-link))

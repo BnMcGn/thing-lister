@@ -11,8 +11,16 @@
 (defvar *html-thing-baseurl* "/things/")
 (defvar *html-thing-current-url* "")
 
-(defun thing-link (thing key)
+(defun %thing-link (thing key)
   (format nil "~athing/~(~a~)/~a" *html-thing-baseurl* thing key))
+
+(defun thing-link (thing key)
+  (or (aand (assoc-cdr :html-thing-link (get-thing thing))
+            (funcall it key))
+      (%thing-link thing key)))
+
+(defun things-link (thing)
+  (format nil "~athings/~(~a~)" *html-thing-baseurl* thing))
 
 (defun connector-link (thing thing2 key)
   (format nil "~aconnector/~(~a~)/~(~a~)/~a" *html-thing-baseurl*
@@ -34,7 +42,7 @@
 	    (pbit-featurebox-side nil
 	      (:h3 (str (thing-label-context thing2 thing)))
 	      (dolist (fkey keep)
-		(htm (:div (:a :href (thing-link thing2 fkey)
+          (htm (:div (:a :href (str (thing-link thing2 fkey))
 			       (str (thing-summary thing2 fkey))))))
 	      (when remainder
 		(htm
@@ -121,7 +129,7 @@
       (:span
        (if (> prev-val 0)
            (htm
-            (:a 
+            (:a
              :href (url-reset-keys
                     url
                     `("~pageindex~" . ,prev-val)
@@ -161,7 +169,7 @@
                           :offset (1- (or ~pageindex~ 1))))
               (htm (:div
                     (:span
-                     (:a :href (thing-link thingtype itm)
+                     (:a :href (str (thing-link thingtype itm))
                          (str (thing-summary thingtype itm)))
                      (display-thing-actions thingtype itm))))))
           (simple-pager-display :total-length llength))))))
@@ -193,35 +201,40 @@
 ;;;;
 
 (define-middleware thing-component ()
-  (url-case
-    (:things
-     (with-output-to-string (*webhax-output*)
-       (url-case
-         (:thing
-          (bind-validated-input
-              ((thing (:pickone :options (thing-symbols)))
-               (key (:or :integer :string)))
-            ;;FIXME: webspecials?
-            (thing-pages thing key)))
-         (:things
-          (bind-validated-input
-              ((thing (:pickone :options (thing-symbols))))
-            (lister-page (list :thing thing :lister-type :thing))))
-         (:thing-search
-          (bind-validated-input
-              ((thing (:pickone :options (thing-symbols)))
-               &key
-               (query :string))
-            (let ((*html-thing-current-url* (url-from-env *web-env*)))
-              (lister-page (list :thing thing :lister-type :search
-                                 :lister-param query)))))
-         (:connector
-          (bind-validated-input
-              ((thing (:pickone :options (thing-symbols)))
-               ;;FIXME: Should also include thing-symbols under name? Can't
-               ;; remember how that is implemented.
-               (name (:pickone :options (thing-connector-names)))
-               (key :integer))
-            (lister-page (list thing name key)))))))
-    (otherwise
-     (call-endware))))
+  (init
+   (dolist (sym (thing-symbols))
+     (register-link sym (things-link sym) :label (capitalize-first sym)))
+   ;;FIXME: Search link to be added?
+   (main
+    (url-case
+      (:things
+       (with-output-to-string (*webhax-output*)
+         (url-case
+           (:thing
+            (bind-validated-input
+                ((thing (:pickone :options (thing-symbols)))
+                 (key (:or :integer :string)))
+              ;;FIXME: webspecials?
+              (thing-pages thing key)))
+           (:things
+            (bind-validated-input
+                ((thing (:pickone :options (thing-symbols))))
+              (lister-page (list :thing thing :lister-type :thing))))
+           (:thing-search
+            (bind-validated-input
+                ((thing (:pickone :options (thing-symbols)))
+                 &key
+                 (query :string))
+              (let ((*html-thing-current-url* (url-from-env *web-env*)))
+                (lister-page (list :thing thing :lister-type :search
+                                   :lister-param query)))))
+           (:connector
+            (bind-validated-input
+                ((thing (:pickone :options (thing-symbols)))
+                 ;;FIXME: Should also include thing-symbols under name? Can't
+                 ;; remember how that is implemented.
+                 (name (:pickone :options (thing-connector-names)))
+                 (key :integer))
+              (lister-page (list thing name key)))))))
+      (otherwise
+       (call-endware))))))

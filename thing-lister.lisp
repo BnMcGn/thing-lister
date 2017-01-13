@@ -17,17 +17,20 @@
           data
           (cons (cons :limitable t) data))))
 
-(defun def-thing (thingname keyfunc summary &key label lister searcher)
-  (setf (gethash thingname *thing-set*)
-  `((:keyfunc . ,keyfunc)
-    (:label . ,(or label #'thing-label))
-    (:summary . ,summary)
-    ,(when lister
-     (cons :lister
-           (prep-lister-def lister)))
-    ,(when searcher
-     (cons :searcher
-           (prep-lister-def searcher))))))
+;;FIXME: Should be way to indicate some other params on hints.
+(defun def-thing (thingname keyfunc summary &rest key-params)
+  (bind-extracted-keywords (key-params others :label :lister :searcher)
+    (setf (gethash thingname *thing-set*)
+          `((:keyfunc . ,keyfunc)
+            (:label . ,(or label #'thing-label))
+            (:summary . ,summary)
+            ,(when lister
+                   (cons :lister
+                         (prep-lister-def lister)))
+            ,(when searcher
+                   (cons :searcher
+                         (prep-lister-def searcher)))
+            ,@(hu:plist->alist others)))))
 
 (defun get-thing (thing)
   (or (gethash thing *thing-set*)
@@ -230,6 +233,6 @@
       (let ((res (apply func xparams)))
         (when offset
           (setf res (nthcdr offset res)))
-        (if limit
+        (if (and limit (< limit (length res)))
             (subseq res 0 limit)
             res)))))
