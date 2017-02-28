@@ -39,16 +39,17 @@
 	  (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
 	(when keep
 	  (in-label-context thing
-	    (pbit-featurebox-side nil
+	    (html-out
+       (:div :class "featurebox_side"
 	      (:h3 (str (thing-label-context thing2 thing)))
 	      (dolist (fkey keep)
           (htm (:div (:a :href (str (thing-link thing2 fkey))
-			       (str (thing-summary thing2 fkey))))))
+                         (str (thing-summary thing2 fkey))))))
 	      (when remainder
-		(htm
-		 (:div :class "navigation"
-		       (:a :href (connector-link thing thing2 key)
-			   "See more")))))))))))
+          (htm
+           (:div :class "navigation"
+                 (:a :href (connector-link thing thing2 key)
+                     "See more"))))))))))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
