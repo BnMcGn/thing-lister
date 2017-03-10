@@ -64,22 +64,23 @@
         (declare (ignore x))
         nil)))
 
+(defvar *thing-key*)
 (defun thing-display-parts (thing &key previous)
   (collecting-hash-table (:existing (or previous (make-hash-table)))
-    (collect :@main-content
-      (lambda (key)
+    (collect :@inner
+      (lambda ()
         (html-out
           (:h2
            (str (concatenate 'string
                              (thing-label thing) ": "
-                             (thing-summary thing key)))))))
-    (collect :@main-content
-      (lambda (key)
-        (display-thing-actions thing key)))
-    (collect :@main-content
+                             (thing-summary thing *thing-key*)))))))
+    (collect :@inner
+      (lambda ()
+        (display-thing-actions thing *thing-key*)))
+    (collect :@inner
       (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
-        (lambda (key)
-          (funcall dfunc (thing-call-keyfunc thing key)))))
+        (lambda ()
+          (funcall dfunc (thing-call-keyfunc thing *thing-key*)))))
     (collect :@side-content (searchbox-display-func thing))
     (dolist (conn (gethash thing *thing-connection-set*))
       (collect :@side-content (connection-display-func thing (car conn))))
@@ -89,11 +90,12 @@
   (defun thing-pages (thing key)
     (unless (key-in-hash? thing pages)
       (setf (gethash thing pages)
-	    (define-page nil
-		((lambda (x)
-		   (thing-display-parts thing :previous x)))
-	      (#'two-side-columns))))
-    (funcall (gethash thing pages) key)))
+            (lambda ()
+              (display-page
+               (thing-display-parts thing)
+               #'two-side-columns))))
+    (let ((*thing-key* key))
+      (funcall (gethash thing pages)))))
 
 ;;;;;;;;;;
 ;Lister
@@ -156,13 +158,13 @@
         (format nil "Things: ~a"
                 (funcall (assoc-cdr :label (get-thing (getf lspec :thing)))
                          (getf lspec :thing)))))
-    (collect :@main-content
-      (lambda (lspec &rest params)
-        (declare (ignore params))
-        (let ((llength (get-things-length lspec))
-              (thingtype (get-things-thingtype lspec))
-              ;;FIXME: Set ~pagequantity~ default somewhere
-              (~pagequantity~ (or ~pagequantity~ 40)))
+    (collect :@inner
+      (lambda ()
+        (let* ((lspec *listerspec*)
+               (llength (get-things-length lspec))
+               (thingtype (get-things-thingtype lspec))
+               ;;FIXME: Set ~pagequantity~ default somewhere
+               (~pagequantity~ (or ~pagequantity~ 40)))
           (simple-pager-display :total-length llength)
           (html-out
             (dolist (itm (get-list-of-things
@@ -175,7 +177,10 @@
                      (display-thing-actions thingtype itm))))))
           (simple-pager-display :total-length llength))))))
 
-(define-page lister-page (#'lister-parts) (#'two-side-columns))
+(defparameter *listerspec* nil)
+(defun lister-page (listerspec)
+  (let ((*listerspec* listerspec))
+    (display-page #'lister-parts #'two-side-columns)))
 
 ;;;;
 ; Actions
