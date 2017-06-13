@@ -150,32 +150,31 @@
                     url-params)
              " Next &gt;")))))))
 
-(defun lister-parts (previous)
-  (collecting-hash-table (:existing (or previous (make-hash-table)))
-    (collect :@title
-      (lambda (lspec &rest params)
-        (declare (ignore params))
-        (format nil "Things: ~a"
-                (funcall (assoc-cdr :label (get-thing (getf lspec :thing)))
-                         (getf lspec :thing)))))
-    (collect :@inner
-      (lambda ()
-        (let* ((lspec *listerspec*)
-               (llength (get-things-length lspec))
-               (thingtype (get-things-thingtype lspec))
-               ;;FIXME: Set ~pagequantity~ default somewhere
-               (~pagequantity~ (or ~pagequantity~ 40)))
-          (simple-pager-display :total-length llength)
-          (html-out
-            (dolist (itm (get-list-of-things
-                          lspec :limit ~pagequantity~
-                          :offset (1- (or ~pageindex~ 1))))
-              (htm (:div
-                    (:span
-                     (:a :href (str (thing-link thingtype itm))
-                         (str (thing-summary thingtype itm)))
-                     (display-thing-actions thingtype itm))))))
-          (simple-pager-display :total-length llength))))))
+(define-parts lister-parts
+  :@title
+  (lambda ()
+    (let ((lspec *listerspec*))
+      (format nil "Things: ~a"
+              (funcall (assoc-cdr :label (get-thing (getf lspec :thing)))
+                       (getf lspec :thing)))))
+  :@inner
+  (lambda ()
+    (let* ((lspec *listerspec*)
+           (llength (get-things-length lspec))
+           (thingtype (get-things-thingtype lspec))
+           ;;FIXME: Set ~pagequantity~ default somewhere
+           (~pagequantity~ (or ~pagequantity~ 40)))
+      (simple-pager-display :total-length llength)
+      (html-out
+        (dolist (itm (get-list-of-things
+                      lspec :limit ~pagequantity~
+                      :offset (1- (or ~pageindex~ 1))))
+          (htm (:div
+                (:span
+                 (:a :href (str (thing-link thingtype itm))
+                     (str (thing-summary thingtype itm)))
+                 (display-thing-actions thingtype itm))))))
+      (simple-pager-display :total-length llength))))
 
 (defparameter *listerspec* nil)
 (defun lister-page (listerspec)
@@ -197,7 +196,7 @@
 (defun display-thing-actions (thingtype thing)
   (dolist (act (get-thing-actions thingtype))
     (html-out
-     (:button 
+     (:button
       :onclick (ps-inline* `(funcall ,(third act) ,thing))
       (str (thing-label (second act)))))))
 
