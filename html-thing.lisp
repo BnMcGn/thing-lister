@@ -176,7 +176,9 @@
 (defparameter *listerspec* nil)
 (defun lister-page (listerspec)
   (let ((*listerspec* listerspec))
-    (display-page #'lister-parts #'two-side-columns)))
+    (display-page
+     #'lister-parts
+     *metaplate-default-parts* *metaplate-default-layout*)))
 
 ;;;;
 ; Actions
