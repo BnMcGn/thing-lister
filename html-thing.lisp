@@ -36,20 +36,20 @@
   (let ((connfunc (get-connector-func thing thing2)))
     (lambda (key)
       (multiple-value-bind (keep remainder)
-	  (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
-	(when keep
-	  (in-label-context thing
-	    (html-out
-       (:div :class "featurebox_side"
-	      (:h3 (str (thing-label-context thing2 thing)))
-	      (dolist (fkey keep)
-          (htm (:div (:a :href (str (thing-link thing2 fkey))
-                         (str (thing-summary thing2 fkey))))))
-	      (when remainder
-          (htm
-           (:div :class "navigation"
-                 (:a :href (connector-link thing thing2 key)
-                     "See more"))))))))))))
+          (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
+        (when keep
+          (in-label-context thing
+            (html-out
+              (:div :class "featurebox_side"
+                    (:h3 (str (thing-label-context thing2 thing)))
+                    (dolist (fkey keep)
+                      (htm (:div (:a :href (str (thing-link thing2 fkey))
+                                     (str (thing-summary thing2 fkey))))))
+                    (when remainder
+                      (htm
+                       (:div :class "navigation"
+                             (:a :href (connector-link thing thing2 key)
+                                 "See more"))))))))))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
@@ -64,38 +64,38 @@
         (declare (ignore x))
         nil)))
 
+(defvar *thing-thingtype*)
 (defvar *thing-key*)
-(defun thing-display-parts (thing &key previous)
-  (collecting-hash-table (:existing (or previous (make-hash-table)))
-    (collect :@inner
-      (lambda ()
-        (html-out
-          (:h2
-           (str (concatenate 'string
-                             (thing-label thing) ": "
-                             (thing-summary thing *thing-key*)))))))
-    (collect :@inner
-      (lambda ()
-        (display-thing-actions thing *thing-key*)))
-    (collect :@inner
-      (let ((dfunc (or (gethash thing *thing-display-set*) #'->html)))
-        (lambda ()
-          (funcall dfunc (thing-call-keyfunc thing *thing-key*)))))
-    (collect :@side-content (searchbox-display-func thing))
-    (dolist (conn (gethash thing *thing-connection-set*))
-      (collect :@side-content (connection-display-func thing (car conn))))
-    (collect :@title (format nil "Thing: ~a" (thing-label thing)))))
+(define-parts thing-display-parts
+  :@inner
+  (lambda ()
+    (html-out
+      (:h2
+       (str (concatenate 'string
+                         (thing-label *thing-thingtype*) ": "
+                         (thing-summary *thing-thingtype* *thing-key*))))))
+  :@inner
+  (lambda ()
+    (display-thing-actions *thing-thingtype* *thing-key*))
+  :@inner
+  (let ((dfunc (or (gethash *thing-thingtype* *thing-display-set*) #'->html)))
+    (lambda ()
+      (funcall dfunc (thing-call-keyfunc *thing-thingtype* *thing-key*))))
+  :@side-content (searchbox-display-func *thing-thingtype*)
+  :@side-content
+  (lambda ()
+    (dolist (conn (gethash *thing-thingtype* *thing-connection-set*))
+      (funcall (connection-display-func *thing-thingtype* (car conn))
+               *thing-key*)))
+  :@title (format nil "Thing: ~a" (thing-label *thing-thingtype*)))
 
-(let ((pages (make-hash-table)))
-  (defun thing-pages (thing key)
-    (unless (key-in-hash? thing pages)
-      (setf (gethash thing pages)
-            (lambda ()
-              (display-page
-               (thing-display-parts thing)
-               #'two-side-columns))))
-    (let ((*thing-key* key))
-      (funcall (gethash thing pages)))))
+(defun thing-pages (thing key)
+  (let ((*thing-thingtype* thing)
+        (*thing-key* key))
+    (display-page
+     #'thing-display-parts
+     *metaplate-default-parts*
+     *metaplate-default-layout*)))
 
 ;;;;;;;;;;
 ;Lister
