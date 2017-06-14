@@ -53,16 +53,13 @@
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
-      (lambda (x)
-        (declare (ignore x))
+      (lambda ()
         (html-out
           (:h3 "Search " (str (thing-label thing)))
           (:form :method "get" :action (search-link thing)
                  (:input :type "text" :name "query")
                  (:input :type "submit" :value "Search"))))
-      (lambda (x)
-        (declare (ignore x))
-        nil)))
+      (lambda () nil)))
 
 (defvar *thing-thingtype*)
 (defvar *thing-key*)
