@@ -10,6 +10,10 @@
 
 (defvar *html-thing-baseurl* "/things/")
 (defvar *html-thing-current-url* "")
+;;FIXME: Not sure if this is the best; consider reconsidering.
+(defvar *html-thing-user-parts* (lambda ())
+  "A hook for inserting dependencies into the thing-lister pages. Any parts placed
+here will go into all thing-lister pages.")
 
 (defun %thing-link (thing key)
   (format nil "~athing/~(~a~)/~a" *html-thing-baseurl* thing key))
@@ -92,6 +96,7 @@
     (display-page
      #'thing-display-parts
      *metaplate-default-parts*
+     *html-thing-user-parts*
      *metaplate-default-layout*)))
 
 ;;;;;;;;;;
@@ -178,7 +183,9 @@
   (let ((*listerspec* listerspec))
     (display-page
      #'lister-parts
-     *metaplate-default-parts* *metaplate-default-layout*)))
+     *metaplate-default-parts*
+     *html-thing-user-parts*
+     *metaplate-default-layout*)))
 
 ;;;;
 ; Actions
