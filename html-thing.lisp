@@ -11,7 +11,7 @@
 (defvar *html-thing-baseurl* "/things/")
 (defvar *html-thing-current-url* "")
 ;;FIXME: Not sure if this is the best; consider reconsidering.
-(defvar *html-thing-user-parts* (lambda ())
+(defvar *html-thing-user-parts* nil
   "A hook for inserting dependencies into the thing-lister pages. Any parts placed
 here will go into all thing-lister pages.")
 
@@ -93,11 +93,12 @@ here will go into all thing-lister pages.")
 (defun thing-pages (thing key)
   (let ((*thing-thingtype* thing)
         (*thing-key* key))
-    (display-page
-     #'thing-display-parts
-     *metaplate-default-parts*
-     *html-thing-user-parts*
-     *metaplate-default-layout*)))
+    (apply #'display-page
+           (flatten-when #'listp
+                         (list #'thing-display-parts
+                               *metaplate-default-parts*
+                               *html-thing-user-parts*
+                               *metaplate-default-layout*)))))
 
 ;;;;;;;;;;
 ;Lister
@@ -181,11 +182,12 @@ here will go into all thing-lister pages.")
 (defparameter *listerspec* nil)
 (defun lister-page (listerspec)
   (let ((*listerspec* listerspec))
-    (display-page
-     #'lister-parts
-     *metaplate-default-parts*
-     *html-thing-user-parts*
-     *metaplate-default-layout*)))
+    (apply #'display-page
+           (flatten-when #'listp
+                         (list #'lister-parts
+                               *metaplate-default-parts*
+                               *html-thing-user-parts*
+                               *metaplate-default-layout*)))))
 
 ;;;;
 ; Actions
