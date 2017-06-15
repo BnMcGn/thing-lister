@@ -174,8 +174,8 @@ here will go into all thing-lister pages.")
                       :offset (1- (or ~pageindex~ 1))))
           (htm (:div
                 (:span
-                 (:a :href (str (thing-link thingtype itm))
-                     (str (thing-summary thingtype itm)))
+                 (:a :href (thing-link thingtype itm)
+                     (thing-summary thingtype itm))
                  (display-thing-actions thingtype itm))))))
       (simple-pager-display :total-length llength))))
 
