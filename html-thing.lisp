@@ -175,7 +175,7 @@ here will go into all thing-lister pages.")
           (htm (:div
                 (:span
                  (:a :href (thing-link thingtype itm)
-                     (thing-summary thingtype itm))
+                     (str (thing-summary thingtype itm)))
                  (display-thing-actions thingtype itm))))))
       (simple-pager-display :total-length llength))))
 
