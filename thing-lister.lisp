@@ -58,42 +58,35 @@
 (defun def-thing-connector (thing name &rest connspec)
   "thing: the source end of the connector. This thing-connector will appear when
 this thing is viewed.
-name: the other end of the connection. Should generally be the symbol of another
-(or the same) thing. Title of the connector box will be taken from this second
-thing.
+name: the other end of the connection. Can be the symbol of a thing.
+ Title of the connector box will be taken from this second thing.
 Connspec: first item in the connspec is a function that will be the Lister. It
 takes a single index (pkey?), that of the current thing, and returns 0 or more
 indices of connected things from the thing indicated by name.
 The rest of the connspec consists of a plist of as yet undetermined parameters."
-  (push (list* name (prep-lister-def connspec))
-        (gethash thing *thing-connection-set*)))
+  (setf (hu:hash-get/extend *thing-connection-set* (list thing name))
+        (prep-lister-def connspec)))
 
-;;;Warning: this assumes that thing2==name
-(defun get-connector-func (thing1 thing2)
-  (dolist (x (gethash thing1 *thing-connection-set*))
-    (when (eq (car x) thing2)
-      (return-from get-connector-func (assoc-cdr :lister (cdr x))))))
-
-(defun get-connector-name (connspec)
-  (car connspec))
+(defun get-connector-func (thing name)
+  (hu:hash-get *thing-connection-set* (list thing name)))
 
 (defun thing-connector-names ()
   (collecting
-    (dolist (conn (hash-table-values *thing-connection-set*))
-      (dolist (item conn)
-        (collect (get-connector-name item))))))
+      (dolist (v (alexandria:hash-table-values *thing-connection-set*))
+        (mapc #'collect (alexandria:hash-table-keys v)))))
 
-(defun get-connector-other-things (connspec)
-  (aif (getf connspec :other-thing-func)
-       (funcall it)
-       (aif (getf connspec :other-thing)
-            (ensure-list it)
-            (list (get-connector-name connspec)))))
+(defun get-connector-other-things (thing name)
+  (let ((cspec (hu:hget *thing-connection-set* (list thing name))))
+    (aif (getf cspec :other-thing-func)
+         (funcall it)
+         (aif (getf cspec :other-thing)
+              (ensure-list it)
+              (list name)))))
 
 ;;;The parameters of get-lister constitute a listerspec
 (defun get-lister (&rest params)
   (bind-extracted-keywords (params _ :thing :lister-type :name
-                                   :other-thing :lister-param)
+                                   :lister-param) ; :other-thing 
     (unless thing (error "Needs a thing"))
     (case lister-type
       (:thing
@@ -104,19 +97,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
              (cons (cons :parameters lister-param) res)
              res)))
       (:connector
-       (aif
-        (dolist (x (gethash thing *thing-connection-set*))
-          (return-on-true
-           (and
-            (if name (eq name (get-connector-name x)) t)
-            (if other-thing
-                (set-equal (ensure-list other-thing)
-                           (get-connector-other-things x)) t)
-            (cdr x))))
-        (if lister-param
-            (cons (list :parameters lister-param) it)
-            it)
-        (error "Connector not found")))
+       ;;FIXME: have dropped support for lister-param and other-thing
+       ;; as determiners of the listerspec. Reconsider.
+       (car (hu:hash-get *thing-connection-set* (list thing name))))
       (otherwise (error "No such lister type")))))
 
 (defun get-lister-sort-keys (listerspec)
