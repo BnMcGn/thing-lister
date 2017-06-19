@@ -56,6 +56,15 @@
 (defvar *thing-connection-set* (make-hash-table :test #'eq))
 
 (defun def-thing-connector (thing name &rest connspec)
+  "thing: the source end of the connector. This thing-connector will appear when
+this thing is viewed.
+name: the other end of the connection. Should generally be the symbol of another
+(or the same) thing. Title of the connector box will be taken from this second
+thing.
+Connspec: first item in the connspec is a function that will be the Lister. It
+takes a single index (pkey?), that of the current thing, and returns 0 or more
+indices of connected things from the thing indicated by name.
+The rest of the connspec consists of a plist of as yet undetermined parameters."
   (push (list* name (prep-lister-def connspec))
         (gethash thing *thing-connection-set*)))
 
@@ -139,6 +148,7 @@
               nil)))))
 
 (defun thing-all-next (listerspec key &key order-by)
+  "All the things after current thing in the listerspec by a certain order."
   (cdr
    (nth-value
     1 (divide-list (curry #'equal key)
