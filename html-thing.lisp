@@ -109,18 +109,37 @@ here will go into all thing-lister pages.")
                                *html-thing-user-parts*
                                *metaplate-default-layout*)))))
 
+(defun url-encode-lister-position (listerspec
+                                   &key
+                                     (extension "source")
+                                     (uri ""))
+  ;;FIXME: Order-by not implemented generally. Verify that the correct name
+  ;; here. Should be in listerspec, but not sure
+  (let* ((keys '(:thing :name :lister-param :lister-type :lister-orderby))
+         (data
+          (collecting
+              (dolist (k keys)
+                (let ((newkey (format nil "~a-~(~a~)" extension k)))
+                  (when-let ((val (getf listerspec k)))
+                    (collect (cons newkey (to-lowercase val)))))))))
+    (apply #'url-reset-keys uri data)))
+
+(defun thing-link/source (thing key)
+  "Create a thing link that passes on info about the current listerspec."
+  (url-encode-lister-position *listerspec* :uri (thing-link thing key)))
+
 ;;;;;;;;;;
 ;Lister
 ;;;;;;;;;;
 
 (defun url-reset-keys (url &rest newvals)
-  (let ((purl (quri:parse-uri url))
+  (let ((purl (quri:uri url))
         (keys (mapcar #'car newvals)))
     (setf
-     (quri:uri-query purl)
+     (quri:uri-query-params purl)
      (concatenate
       'list
-      (remove-if-member (quri:uri-query purl) keys
+      (remove-if-member (quri:uri-query-params purl) keys
                         :key (lambda (x) (car x))
                         :test #'equal)
       newvals))
@@ -183,7 +202,7 @@ here will go into all thing-lister pages.")
                       :offset (1- (or ~pageindex~ 1))))
           (htm (:div
                 (:span
-                 (:a :href (thing-link thingtype itm)
+                 (:a :href (thing-link/source thingtype itm)
                      (str (thing-summary thingtype itm)))
                  (display-thing-actions thingtype itm))))))
       (simple-pager-display :total-length llength))))
