@@ -114,17 +114,17 @@ here will go into all thing-lister pages.")
 ;;;;;;;;;;
 
 (defun url-reset-keys (url &rest newvals)
-  (let ((purl (ystok.uri:parse-uri url))
+  (let ((purl (quri:parse-uri url))
         (keys (mapcar #'car newvals)))
     (setf
-     (ystok.uri:uri-query purl)
+     (quri:uri-query purl)
      (concatenate
       'list
-      (remove-if-member (ystok.uri:uri-query purl) keys
+      (remove-if-member (quri:uri-query purl) keys
                         :key (lambda (x) (car x))
                         :test #'equal)
       newvals))
-    (ystok.uri:render-uri purl nil t t)))
+    (quri:render-uri purl)))
 
 ;;FIXME: Could use webhax-validate?
 (def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))

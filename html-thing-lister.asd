@@ -7,7 +7,7 @@
   :license "Apache 2.0"
   :depends-on (#:thing-lister 
 	#:cl-who 
-	#:ystok-uri
+	#:quri
 	#:cl-ppcre
 	#:webhax)
   :components ((:file "html-package")
