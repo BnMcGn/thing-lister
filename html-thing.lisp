@@ -37,8 +37,10 @@ here will go into all thing-lister pages.")
 (defvar *html-thing-sidebox-limit* 10)
 
 (defun connection-display-func (thing name &key other-thing)
+  (declare (type symbol thing name))
   (let ((connfunc (get-connector-func thing name))
         (other-thing (or other-thing name)))
+    (declare (type symbol other-thing))
     (lambda (key)
       (multiple-value-bind (keep remainder)
           (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
@@ -89,7 +91,8 @@ here will go into all thing-lister pages.")
     (dolist
         (name (alexandria:hash-table-keys
                (gethash *thing-thingtype* *thing-connection-set*)))
-      (if-let ((other (get-connector-other-things *thing-thingtype* name)))
+      (if-let ((other
+                (car (get-connector-other-things *thing-thingtype* name))))
         (funcall (connection-display-func *thing-thingtype* name
                                           :other-thing other) *thing-key*)
         (funcall (connection-display-func *thing-thingtype* name)

@@ -68,7 +68,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
         (prep-lister-def connspec)))
 
 (defun get-connector-func (thing name)
-  (hu:hash-get *thing-connection-set* (list thing name)))
+  (assoc-cdr
+   :lister
+   (hu:hash-get *thing-connection-set* (list thing name))))
 
 (defun thing-connector-names ()
   (collecting
@@ -77,9 +79,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 
 (defun get-connector-other-things (thing name)
   (let ((cspec (hu:hget *thing-connection-set* (list thing name))))
-    (aif (getf cspec :other-thing-func)
+    (aif (assoc-cdr :other-thing-func cspec)
          (funcall it)
-         (aif (getf cspec :other-thing)
+         (aif (assoc-cdr :other-thing cspec)
               (ensure-list it)
               (list name)))))
 
