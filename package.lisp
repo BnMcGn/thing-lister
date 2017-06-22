@@ -24,4 +24,5 @@
      #:thing-all-next
      #:thing-all-previous
      #:wrap-with-paging-handler
-     #:get-connector-other-things))
+     #:get-connector-other-things
+     #:*thing-summary-width*))

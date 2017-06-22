@@ -15,6 +15,8 @@
   "A hook for inserting dependencies into the thing-lister pages. Any parts placed
 here will go into all thing-lister pages.")
 
+(defvar *thing-summary-sidebar-width* nil)
+
 (defun %thing-link (thing key)
   (format nil "~athing/~(~a~)/~a" *html-thing-baseurl* thing key))
 
@@ -51,7 +53,11 @@ here will go into all thing-lister pages.")
                     (:h3 (str (thing-label-context name thing)))
                     (dolist (fkey keep)
                       (htm (:div (:a :href (str (thing-link other-thing fkey))
-                                     (str (thing-summary other-thing fkey))))))
+                                     ;;FIXME: connspec override of width
+                                     (str
+                                      (let ((*thing-summary-width*
+                                             *thing-summary-sidebar-width*))
+                                        (thing-summary other-thing fkey)))))))
                     (when remainder
                       (htm
                        (:div :class "navigation"
@@ -77,6 +83,7 @@ here will go into all thing-lister pages.")
       (:h2
        (str (concatenate 'string
                          (thing-label *thing-thingtype*) ": "
+                         ;;FIXME: implement summary-width settings?
                          (thing-summary *thing-thingtype* *thing-key*))))))
   :@inner
   (lambda ()
@@ -204,6 +211,7 @@ here will go into all thing-lister pages.")
           (htm (:div
                 (:span
                  (:a :href (thing-link/source thingtype itm)
+                     ;;FIXME: Summary-width settings?
                      (str (thing-summary thingtype itm)))
                  (display-thing-actions thingtype itm))))))
       (simple-pager-display :total-length llength))))

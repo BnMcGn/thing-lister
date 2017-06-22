@@ -12,4 +12,5 @@
 	   #:def-thing-action
      #:thing-component
      #:things-link
-     #:*html-thing-user-parts*))
+     #:*html-thing-user-parts*
+     #:*thing-summary-sidebar-width*))

@@ -43,6 +43,11 @@
 (defun thing-call-keyfunc (thing &rest params)
   (apply (assoc-cdr :keyfunc (get-thing thing)) params))
 
+(defvar *thing-summary-width* nil
+  "A suggested character width within which the summary should be kept. Can
+be NIL or an integer. May vary depending on context of the summary. Gives
+summary functions a chance to intelligently abbreviate")
+
 (defun thing-summary (thing key)
   (let ((res (funcall (assoc-cdr :summary (get-thing thing))
                       (thing-call-keyfunc thing key))))
