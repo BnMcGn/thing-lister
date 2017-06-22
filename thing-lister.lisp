@@ -85,6 +85,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
               (ensure-list it)
               (list name)))))
 
+;;FIXME: Somewhere, order-by support needs to be implemented/thought out
 ;;;The parameters of get-lister constitute a listerspec
 (defun get-lister (&rest params)
   (bind-extracted-keywords (params _ :thing :lister-type :name

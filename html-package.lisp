@@ -11,4 +11,5 @@
 	   #:thing-pages
 	   #:def-thing-action
      #:thing-component
-     #:things-link))
+     #:things-link
+     #:*html-thing-user-parts*))

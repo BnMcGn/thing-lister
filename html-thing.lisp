@@ -89,8 +89,8 @@ here will go into all thing-lister pages.")
   :@side-content
   (lambda ()
     (dolist
-        (name (alexandria:hash-table-keys
-               (gethash *thing-thingtype* *thing-connection-set*)))
+        (name (aand (gethash *thing-thingtype* *thing-connection-set*)
+                    (alexandria:hash-table-keys it)))
       (if-let ((other
                 (car (get-connector-other-things *thing-thingtype* name))))
         (funcall (connection-display-func *thing-thingtype* name
@@ -109,6 +109,7 @@ here will go into all thing-lister pages.")
                                *html-thing-user-parts*
                                *metaplate-default-layout*)))))
 
+;;FIXME: Receiving end of source listerspec support is not implemented
 (defun url-encode-lister-position (listerspec
                                    &key
                                      (extension "source")
