@@ -93,18 +93,15 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 ;;FIXME: Somewhere, order-by support needs to be implemented/thought out
 ;;;The parameters of get-lister constitute a listerspec
 (defun get-lister (&rest params)
-  (bind-extracted-keywords (params _ :thing :lister-type :name
-                                   :lister-param) ; :other-thing
+  (bind-extracted-keywords (params _ :thing :lister-type :name)
+                                  ; :lister-param) ; :other-thing
     (unless thing (error "Needs a thing"))
     ;;FIXME: Always should throw error on not found?
     (case lister-type
       (:thing
        (assoc-cdr :lister (get-thing thing)))
       (:search ;FIXME: search likely needs a rethink. Legacy.
-       (let ((res (assoc-cdr :searcher (get-thing thing))))
-         (if lister-param
-             (cons (cons :parameters lister-param) res)
-             res)))
+       (assoc-cdr :searcher (get-thing thing)))
       (:connector
        ;;FIXME: have dropped support for lister-param and other-thing
        ;; as determiners of the listerspec. Reconsider.
@@ -154,14 +151,14 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 (defun get-list-of-things (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (apply (assoc-cdr :lister lister)
-           `(,@(strip-keywords (assoc-cdr :parameters lister))
+           `(,@(strip-keywords (assoc-cdr :lister-param listerspec))
              ,@(strip-keywords params)))))
 
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (aif (assoc-cdr :length lister)
          (apply it
-                `(,@(assoc-cdr :parameters lister)
+                `(,@(assoc-cdr :lister-param listerspec)
                   ,@params))
          (length (apply #'get-list-of-things listerspec params)))))
 
