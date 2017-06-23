@@ -285,6 +285,7 @@ here will go into all thing-lister pages.")
                  ;; remember how that is implemented.
                  (name (:pickone :options (thing-connector-names)))
                  (key :integer))
-              (lister-page (list thing name key)))))))
+              (lister-page (list :thing thing :lister-type :connector
+                                 :name name :lister-param key)))))))
       (otherwise
        (call-endware))))))
