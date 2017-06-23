@@ -94,8 +94,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 ;;;The parameters of get-lister constitute a listerspec
 (defun get-lister (&rest params)
   (bind-extracted-keywords (params _ :thing :lister-type :name
-                                   :lister-param) ; :other-thing 
+                                   :lister-param) ; :other-thing
     (unless thing (error "Needs a thing"))
+    ;;FIXME: Always should throw error on not found?
     (case lister-type
       (:thing
        (assoc-cdr :lister (get-thing thing)))
@@ -107,7 +108,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
       (:connector
        ;;FIXME: have dropped support for lister-param and other-thing
        ;; as determiners of the listerspec. Reconsider.
-       (car (hu:hash-get *thing-connection-set* (list thing name))))
+       (hu:hash-get *thing-connection-set* (list thing name)))
       (otherwise (error "No such lister type")))))
 
 (defun get-lister-sort-keys (listerspec)
