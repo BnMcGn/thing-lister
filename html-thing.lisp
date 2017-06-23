@@ -52,7 +52,7 @@ here will go into all thing-lister pages.")
               (:div :class "featurebox_side"
                     (:h3 (str (thing-label-context name thing)))
                     (dolist (fkey keep)
-                      (htm (:div (:a :href (str (thing-link other-thing fkey))
+                      (htm (:div (:a :href (thing-link other-thing fkey)
                                      ;;FIXME: connspec override of width
                                      (str
                                       (let ((*thing-summary-width*
