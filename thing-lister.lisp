@@ -69,7 +69,8 @@ Connspec: first item in the connspec is a function that will be the Lister. It
 takes a single index (pkey?), that of the current thing, and returns 0 or more
 indices of connected things from the thing indicated by name.
 The rest of the connspec consists of a plist of as yet undetermined parameters."
-  (setf (hu:hash-get/extend *thing-connection-set* (list thing name))
+  (setf (hu:hash-get *thing-connection-set* (list thing name)
+                     :fill-func #'make-hash-table)
         (prep-lister-def connspec)))
 
 (defun get-connector-func (thing name)
@@ -118,7 +119,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (let ((things (get-list-of-things listerspec :order-by order-by)))
     (unless (< 1 (length things))
       (return-from thing-next nil))
-    (let ((rem (nth-value 1 (divide-list (curry #'equal key) things))))
+    (let ((rem (nth-value 1 (divide-on-true (curry #'equal key) things))))
       (if (< 1 (length rem))
           (second rem)
           (if loop
@@ -129,7 +130,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (let ((things (get-list-of-things listerspec :order-by order-by)))
     (unless (< 1 (length things))
       (return-from thing-previous nil))
-    (let ((head (divide-list (curry #'equal key) things)))
+    (let ((head (divide-on-true (curry #'equal key) things)))
       (if (< 0 (length head))
           (last-car head)
           (if loop
@@ -140,25 +141,25 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   "All the things after current thing in the listerspec by a certain order."
   (cdr
    (nth-value
-    1 (divide-list (curry #'equal key)
+    1 (divide-on-true (curry #'equal key)
                    (get-list-of-things listerspec :order-by order-by)))))
 
 (defun thing-all-previous (listerspec key &key order-by)
   (nth-value
-   0 (divide-list (curry #'equal key)
+   0 (divide-on-true (curry #'equal key)
                   (get-list-of-things listerspec :order-by order-by))))
 
 (defun get-list-of-things (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (apply (assoc-cdr :lister lister)
-           (getf listerspec :lister-param)
-           (strip-keywords params))))
+           `(,@(getf listerspec :lister-param)
+             ,@(strip-keywords params)))))
 
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
     (aif (assoc-cdr :length lister)
          (apply it
-                `(,@(assoc-cdr :lister-param listerspec)
+                `(,@(getf listerspec :lister-param)
                   ,@params))
          (length (apply #'get-list-of-things listerspec params)))))
 
