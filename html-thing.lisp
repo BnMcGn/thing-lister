@@ -38,10 +38,10 @@ here will go into all thing-lister pages.")
 ;Number of items that a sidebox should display before adding a More... link
 (defvar *html-thing-sidebox-limit* 10)
 
-(defun connection-display-func (thing name &key other-thing)
+(defun connection-display-func (thing name)
   (declare (type symbol thing name))
   (let ((connfunc (get-connector-func thing name))
-        (other-thing (or other-thing name)))
+        (other-thing (car (get-connector-other-things thing name))))
     (declare (type symbol other-thing))
     (lambda (key)
       (multiple-value-bind (keep remainder)
@@ -98,12 +98,7 @@ here will go into all thing-lister pages.")
     (dolist
         (name (aand (gethash *thing-thingtype* *thing-connection-set*)
                     (alexandria:hash-table-keys it)))
-      (if-let ((other
-                (car (get-connector-other-things *thing-thingtype* name))))
-        (funcall (connection-display-func *thing-thingtype* name
-                                          :other-thing other) *thing-key*)
-        (funcall (connection-display-func *thing-thingtype* name)
-                 *thing-key*))))
+      (funcall (connection-display-func *thing-thingtype* name) *thing-key*)))
   :@title (format nil "Thing: ~a" (thing-label *thing-thingtype*)))
 
 (defun thing-pages (thing key)
