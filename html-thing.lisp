@@ -203,7 +203,7 @@ here will go into all thing-lister pages.")
         (dolist (itm (get-list-of-things
                       lspec :limit ~pagequantity~
                       :offset (1- (or ~pageindex~ 1))))
-          (htm (:div
+          (htm (:div :class "thing_lister"
                 (:span
                  (:a :href (thing-link/source thingtype itm)
                      ;;FIXME: Summary-width settings?
@@ -236,9 +236,9 @@ here will go into all thing-lister pages.")
 (defun display-thing-actions (thingtype thing)
   (dolist (act (get-thing-actions thingtype))
     (html-out
-     (:button
-      :onclick (ps-inline* `(funcall ,(third act) ,thing))
-      (str (thing-label (second act)))))))
+      (:button
+       :onclick (ps-inline* `(funcall ,(third act) ,thing))
+       (str (thing-label (second act)))))))
 
 
 ;;;;
