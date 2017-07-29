@@ -13,4 +13,5 @@
      #:thing-component
      #:things-link
      #:*html-thing-user-parts*
-     #:*thing-summary-sidebar-width*))
+     #:*thing-summary-sidebar-width*
+     #:connection-display-func))
