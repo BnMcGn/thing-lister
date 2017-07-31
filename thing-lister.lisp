@@ -150,10 +150,15 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
                   (get-list-of-things listerspec :order-by order-by))))
 
 (defun get-list-of-things (listerspec &rest params)
-  (let ((lister (apply #'get-lister listerspec)))
-    (apply (assoc-cdr :lister lister)
-           `(,@(getf listerspec :lister-param)
-             ,@(strip-keywords params)))))
+  (let ((lister (apply #'get-lister listerspec))
+        (thingtype (get-things-thingtype listerspec)))
+    (let ((res
+           (apply (assoc-cdr :lister lister)
+                  `(,@(getf listerspec :lister-param)
+                      ,@(strip-keywords params)))))
+      (if (eq thingtype :multiple)
+          res
+          (mapcar (lambda (x) (list x thingtype)) res)))))
 
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
@@ -166,8 +171,6 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 (defparameter *thing-types* '(:thing :connector :search))
 
 (defun get-things-thingtype (listerspec)
-  (print "in get-things-thingtype")
-  (print listerspec)
   (bind-extracted-keywords (listerspec _ :thing :name :lister-type)
     (case lister-type
       (:connector

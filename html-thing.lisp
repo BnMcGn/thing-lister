@@ -195,20 +195,19 @@ here will go into all thing-lister pages.")
   (lambda ()
     (let* ((lspec *listerspec*)
            (llength (get-things-length lspec))
-           (thingtype (get-things-thingtype lspec))
            ;;FIXME: Set ~pagequantity~ default somewhere
            (~pagequantity~ (or ~pagequantity~ 40)))
       (simple-pager-display :total-length llength)
       (html-out
-        (dolist (itm (get-list-of-things
-                      lspec :limit ~pagequantity~
-                      :offset (1- (or ~pageindex~ 1))))
-          (htm (:div :class "thing_lister"
-                (:span
-                 (:a :href (thing-link/source thingtype itm)
-                     ;;FIXME: Summary-width settings?
-                     (str (thing-summary thingtype itm)))
-                 (display-thing-actions thingtype itm))))))
+        (loop for (itm thingtype) in (get-list-of-things
+                                      lspec :limit ~pagequantity~
+                                      :offset (1- (or ~pageindex~ 1)))
+          do (htm (:div :class "thing_lister"
+                        (:span
+                         (:a :href (thing-link/source thingtype itm)
+                             ;;FIXME: Summary-width settings?
+                             (str (thing-summary thingtype itm)))
+                         (display-thing-actions thingtype itm))))))
       (simple-pager-display :total-length llength))))
 
 (defparameter *listerspec* nil)
