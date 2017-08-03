@@ -48,21 +48,25 @@ here will go into all thing-lister pages.")
           (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
         (when keep
           (in-label-context thing
-            (html-out
-              (:div :class "featurebox_side"
-                    (:h3 (str (thing-label-context name thing)))
-                    (dolist (fkey keep)
-                      (htm (:div (:a :href (thing-link other-thing fkey)
-                                     ;;FIXME: connspec override of width
-                                     (str
-                                      (let ((*thing-summary-width*
-                                             *thing-summary-sidebar-width*))
-                                        (thing-summary other-thing fkey)))))))
-                    (when remainder
-                      (htm
-                       (:div :class "navigation"
-                             (:a :href (connector-link thing name key)
-                                 "See more"))))))))))))
+            (let ((*thing-summary-width*
+                   *thing-summary-sidebar-width*))
+              (html-out
+                (:div :class "featurebox_side"
+                      (:h3 (str (thing-label-context name thing)))
+                      (loop for (fkey other-thing)
+                         in (if (eq other-thing :multiple)
+                                keep
+                                (mapcar (lambda (x) (list x other-thing)) keep))
+                         do (htm
+                             (:div (:a :href (thing-link other-thing fkey)
+                                          ;;FIXME: connspec override of width
+                                          (str
+                                           (thing-summary other-thing fkey)))))))
+                      (when remainder
+                        (htm
+                         (:div :class "navigation"
+                               (:a :href (connector-link thing name key)
+                                   "See more"))))))))))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
