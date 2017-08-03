@@ -11,7 +11,7 @@
                   (list*
                    (cons :lister
                          (car ldef))
-                   (keyword-splitter (cdr ldef)))
+                   (hu:plist->alist (cdr ldef)))
                   (list (cons :lister ldef)))))
     (aif2 (assoc :limitable data)
           data
