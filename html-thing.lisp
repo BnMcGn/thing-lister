@@ -188,6 +188,26 @@ here will go into all thing-lister pages.")
                     url-params)
              " Next &gt;")))))))
 
+(defun render-list (listerspec &key (class "thing_lister") label
+                                 (pagequantity 40)
+                                 summary-width)
+  (declare (ignore label)) ;Doesn't handle label
+  (let ((llength (get-things-length listerspec))
+        (~pagequantity~ (or ~pagequantity~ pagequantity))
+        (*listerspec* listerspec)
+        (*thing-summary-width* (or summary-width *thing-summary-width*)))
+    (simple-pager-display :total-length llength)
+    (html-out
+      (loop for (itm thingtype) in (get-list-of-things
+                                    listerspec :limit ~pagequantity~
+                                    :offset (1- (or ~pageindex~ 1)))
+         do (htm (:div :class class
+                       (:span
+                        (:a :href (thing-link/source thingtype itm)
+                            (str (thing-summary thingtype itm)))
+                        (display-thing-actions thingtype itm))))))
+    (simple-pager-display :total-length llength)))
+
 (define-parts lister-parts
   :@title
   (lambda ()
@@ -197,22 +217,7 @@ here will go into all thing-lister pages.")
                        (getf lspec :thing)))))
   :@inner
   (lambda ()
-    (let* ((lspec *listerspec*)
-           (llength (get-things-length lspec))
-           ;;FIXME: Set ~pagequantity~ default somewhere
-           (~pagequantity~ (or ~pagequantity~ 40)))
-      (simple-pager-display :total-length llength)
-      (html-out
-        (loop for (itm thingtype) in (get-list-of-things
-                                      lspec :limit ~pagequantity~
-                                      :offset (1- (or ~pageindex~ 1)))
-          do (htm (:div :class "thing_lister"
-                        (:span
-                         (:a :href (thing-link/source thingtype itm)
-                             ;;FIXME: Summary-width settings?
-                             (str (thing-summary thingtype itm)))
-                         (display-thing-actions thingtype itm))))))
-      (simple-pager-display :total-length llength))))
+    (render-list *listerspec*)))
 
 (defparameter *listerspec* nil)
 (defun lister-page (listerspec)
