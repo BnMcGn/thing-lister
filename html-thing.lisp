@@ -74,7 +74,14 @@ here will go into all thing-lister pages.")
                         (htm
                          (:div :class "navigation"
                                (:a :href (connector-link thing name key)
-                                   "See more"))))))))))))
+                                   (str "See more")))))))))))))
+
+(defun connection-display-func (thing name)
+  (lambda (key)
+    (render-list-for-sidebar
+     (list :lister-type :connector :thing thing :name name :lister-param key)
+     ;(add-lister-param (get-connector thing name) key)
+     :label (in-label-context thing (thing-label-context name thing)))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))

@@ -73,10 +73,16 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
                      :fill-func #'make-hash-table)
         (prep-lister-def connspec)))
 
+(defun get-connector (thing name)
+  (when-let ((conn (hu:hash-get *thing-connection-set* (list thing name))))
+    (list*
+     (cons :lister-type :connector)
+     (cons :thing thing)
+     (cons :name name)
+     conn)))
+
 (defun get-connector-func (thing name)
-  (assoc-cdr
-   :lister
-   (hu:hash-get *thing-connection-set* (list thing name))))
+  (assoc-cdr :lister (get-connector thing name)))
 
 (defun thing-connector-names ()
   (collecting
@@ -111,6 +117,11 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 
 (defun get-lister-sort-keys (listerspec)
   (getf (apply #'get-lister listerspec) :sort-keys))
+
+(defun add-lister-param (listerspec param)
+  (if-let ((parm (assoc :lister-param listerspec)))
+    (error (format nil "Parameter already set to ~a" (cdr parm)))
+    (cons (cons :lister-param param) listerspec)))
 
 ;;;FIXME: Not optimal for long lists of things. Should be able to override with
 ;;;custom function.
@@ -154,7 +165,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
         (thingtype (get-things-thingtype listerspec)))
     (let ((res
            (apply (assoc-cdr :lister lister)
-                  `(,@(getf listerspec :lister-param)
+                  `(,@(list (getf listerspec :lister-param))
                       ,@(strip-keywords params)))))
       (if (eq thingtype :multiple)
           res
@@ -164,9 +175,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (let ((lister (apply #'get-lister listerspec)))
     (aif (assoc-cdr :length lister)
          (apply it
-                `(,@(getf listerspec :lister-param)
+                `(,@(list (getf listerspec :lister-param))
                   ,@params))
-         (length (apply #'get-list-of-things listerspec params)))))
+         (length (print (apply #'get-list-of-things listerspec params))))))
 
 (defparameter *thing-types* '(:thing :connector :search))
 

@@ -25,4 +25,6 @@
      #:thing-all-previous
      #:wrap-with-paging-handler
      #:get-connector-other-things
-     #:*thing-summary-width*))
+     #:*thing-summary-width*
+     #:get-connector
+     #:add-lister-param))
