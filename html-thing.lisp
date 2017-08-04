@@ -35,6 +35,14 @@ here will go into all thing-lister pages.")
 (defun search-link (thing)
   (format nil "~athing-search/~(~a~)" *html-thing-baseurl* thing))
 
+(defun lister-link (lspec)
+  ;;FIXME: should handle order-by?
+  (hu:with-keys (:thing :name :lister-param :lister-type) (hu:plist->hash lspec)
+    (case lister-type
+      (:thing (things-link thing))
+      (:connector (connector-link thing name lister-param))
+      (otherwise (error "Not implemented")))))
+
 ;Number of items that a sidebox should display before adding a More... link
 (defvar *html-thing-sidebox-limit* 10)
 
@@ -207,6 +215,28 @@ here will go into all thing-lister pages.")
                             (str (thing-summary thingtype itm)))
                         (display-thing-actions thingtype itm))))))
     (simple-pager-display :total-length llength)))
+
+(defun render-list-for-sidebar (listerspec &key (class "featurebox_side")
+                                             label
+                                             (pagequantity
+                                              *html-thing-sidebox-limit*)
+                                             summary-width)
+  (let ((llength (get-things-length listerspec))
+        (*listerspec* listerspec)
+        (*thing-summary-width* (or summary-width *thing-summary-sidebar-width*)))
+    (unless (zerop llength)
+      (html-out
+        (:div :class class
+              (:h3 (str label))
+              (loop for (itm thingtype) in
+                   (get-list-of-things listerspec :limit pagequantity :offset 0)
+                 do
+                   (htm (:div (:a :href (thing-link/source thingtype itm)
+                                  (str (thing-summary thingtype itm))))))
+              (when (< pagequantity llength)
+                (htm
+                 (:div :class "navigation"
+                       (:a :href (lister-link listerspec)) "See more"))))))))
 
 (define-parts lister-parts
   :@title
