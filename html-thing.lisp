@@ -74,7 +74,7 @@ here will go into all thing-lister pages.")
                         (htm
                          (:div :class "navigation"
                                (:a :href (connector-link thing name key)
-                                   (str "See more")))))))))))))
+                                   "See more"))))))))))))
 
 (defun connection-display-func (thing name)
   (lambda (key)
