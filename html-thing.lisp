@@ -213,7 +213,7 @@ here will go into all thing-lister pages.")
               (when (< pagequantity llength)
                 (htm
                  (:div :class "navigation"
-                       (:a :href (lister-link listerspec)) "See more"))))))))
+                       (:a :href (lister-link listerspec) "See more")))))))))
 
 (define-parts lister-parts
   :@title
