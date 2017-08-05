@@ -2,14 +2,14 @@
 
 (defpackage #:thing-lister
   (:use #:cl #:gadgets #:alexandria #:anaphora #:thing-labels)
-  (:export 
+  (:export
 	   #:def-thing
 	   #:get-thing
 	   #:thing-summary
 	   #:def-thing-connector
 	   #:get-connector-func
 	   #:*thing-set*
-	   #:*thing-connection-set*
+	   #:*thing-connector-set*
 	   #:get-list-of-things
 	   #:get-things-length
 	   #:get-things-thingtype

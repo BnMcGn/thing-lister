@@ -41,7 +41,7 @@
                                    :lister-name :other-thing) alist)))
 
 (defclass json-thing (json-call)
-  ((thingset :initform (list *thing-set* *thing-connection-set*)
+  ((thingset :initform (list *thing-set* *thing-connector-set*)
              :initarg :thingset)))
 
 (defmethod execute ((this json-thing))

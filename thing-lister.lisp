@@ -58,23 +58,23 @@ summary functions a chance to intelligently abbreviate")
                thing)))
     res))
 
-(defvar *thing-connection-set* (make-hash-table :test #'eq))
+(defvar *thing-connector-set* (make-hash-table :test #'eq))
 
 (defun def-thing-connector (thing name &rest connspec)
   "thing: the source end of the connector. This thing-connector will appear when
 this thing is viewed.
-name: the other end of the connection. Can be the symbol of a thing.
+name: the other end of the connector. Can be the symbol of a thing.
  Title of the connector box will be taken from this second thing.
 Connspec: first item in the connspec is a function that will be the Lister. It
 takes a single index (pkey?), that of the current thing, and returns 0 or more
 indices of connected things from the thing indicated by name.
 The rest of the connspec consists of a plist of as yet undetermined parameters."
-  (setf (hu:hash-get *thing-connection-set* (list thing name)
+  (setf (hu:hash-get *thing-connector-set* (list thing name)
                      :fill-func #'make-hash-table)
         (prep-lister-def connspec)))
 
 (defun get-connector (thing name)
-  (when-let ((conn (hu:hash-get *thing-connection-set* (list thing name))))
+  (when-let ((conn (hu:hash-get *thing-connector-set* (list thing name))))
     (list*
      (cons :lister-type :connector)
      (cons :thing thing)
@@ -86,11 +86,11 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 
 (defun thing-connector-names ()
   (collecting
-      (dolist (v (alexandria:hash-table-values *thing-connection-set*))
+      (dolist (v (alexandria:hash-table-values *thing-connector-set*))
         (mapc #'collect (alexandria:hash-table-keys v)))))
 
 (defun get-connector-other-things (thing name)
-  (let ((cspec (hu:hget *thing-connection-set* (list thing name))))
+  (let ((cspec (hu:hget *thing-connector-set* (list thing name))))
     (aif (assoc-cdr :other-thing-func cspec)
          (funcall it)
          (aif (assoc-cdr :other-thing cspec)
@@ -112,7 +112,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
       (:connector
        ;;FIXME: have dropped support for lister-param and other-thing
        ;; as determiners of the listerspec. Reconsider.
-       (hu:hash-get *thing-connection-set* (list thing name)))
+       (hu:hash-get *thing-connector-set* (list thing name)))
       (otherwise (error "No such lister type")))))
 
 (defun get-lister-sort-keys (listerspec)
@@ -200,7 +200,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 (defmacro with-thingset (thingset &body body)
   (once-only (thingset)
     `(let ((*thing-set* (car ,thingset))
-          (*thing-connection-set* (second ,thingset)))
+          (*thing-connector-set* (second ,thingset)))
       ,@body)))
 
 ;;;

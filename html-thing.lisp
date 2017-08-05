@@ -46,37 +46,7 @@ here will go into all thing-lister pages.")
 ;Number of items that a sidebox should display before adding a More... link
 (defvar *html-thing-sidebox-limit* 10)
 
-(defun connection-display-func (thing name)
-  (declare (type symbol thing name))
-  (let ((connfunc (get-connector-func thing name))
-        (other-thing (car (get-connector-other-things thing name))))
-    (declare (type symbol other-thing))
-    (lambda (key)
-      (multiple-value-bind (keep remainder)
-          (divide-on-index (funcall connfunc key) *html-thing-sidebox-limit*)
-        (when keep
-          (in-label-context thing
-            (let ((*thing-summary-width*
-                   *thing-summary-sidebar-width*))
-              (html-out
-                (:div :class "featurebox_side"
-                      (:h3 (str (thing-label-context name thing)))
-                      (loop for (fkey other-thing)
-                         in (if (eq other-thing :multiple)
-                                keep
-                                (mapcar (lambda (x) (list x other-thing)) keep))
-                         do (htm
-                             (:div (:a :href (thing-link other-thing fkey)
-                                          ;;FIXME: connspec override of width
-                                          (str
-                                           (thing-summary other-thing fkey)))))))
-                      (when remainder
-                        (htm
-                         (:div :class "navigation"
-                               (:a :href (connector-link thing name key)
-                                   "See more"))))))))))))
-
-(defun connection-display-func (thing name)
+(defun connector-display-func (thing name)
   (lambda (key)
     (render-list-for-sidebar
      (list :lister-type :connector :thing thing :name name :lister-param key)
@@ -115,9 +85,9 @@ here will go into all thing-lister pages.")
   :@side-content
   (lambda ()
     (dolist
-        (name (aand (gethash *thing-thingtype* *thing-connection-set*)
+        (name (aand (gethash *thing-thingtype* *thing-connector-set*)
                     (alexandria:hash-table-keys it)))
-      (funcall (connection-display-func *thing-thingtype* name) *thing-key*)))
+      (funcall (connector-display-func *thing-thingtype* name) *thing-key*)))
   :@title (format nil "Thing: ~a" (thing-label *thing-thingtype*)))
 
 (defun thing-pages (thing key)
