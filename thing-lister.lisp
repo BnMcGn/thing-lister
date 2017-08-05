@@ -15,7 +15,7 @@
                   (list (cons :lister ldef)))))
     (aif2 (assoc :limitable data)
           data
-          (cons (cons :limitable t) data))))
+          (cons (cons :limitable nil) data))))
 
 ;;FIXME: Should be way to indicate some other params on hints.
 (defun def-thing (thingname keyfunc summary &rest key-params)
@@ -161,10 +161,16 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
                   (get-list-of-things listerspec :order-by order-by))))
 
 (defun get-list-of-things (listerspec &rest params)
-  (let ((lister (apply #'get-lister listerspec))
-        (thingtype (get-things-thingtype listerspec)))
+  (let* ((lister (apply #'get-lister listerspec))
+         (thingtype (get-things-thingtype listerspec))
+         (list-func (assoc-cdr :lister lister))
+         (list-func
+          (if (and (not (assoc-cdr :limitable lister))
+                   (or (getf params :limit) (getf params :offset)))
+              (wrap-with-paging-handler list-func)
+              list-func)))
     (let ((res
-           (apply (assoc-cdr :lister lister)
+           (apply list-func
                   `(,@(list (getf listerspec :lister-param))
                       ,@(strip-keywords params)))))
       (if (eq thingtype :multiple)
@@ -177,7 +183,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
          (apply it
                 `(,@(list (getf listerspec :lister-param))
                   ,@params))
-         (length (print (apply #'get-list-of-things listerspec params))))))
+         (length (apply #'get-list-of-things listerspec params)))))
 
 (defparameter *thing-types* '(:thing :connector :search))
 
@@ -222,7 +228,8 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
                             (apply #'sql-stuff:get-column
                                    table
                                    (sql-stuff:get-table-pkey table)
-                                   params)))))
+                                   params))))
+               :limitable t)
       :searcher (when search-cols
                   (list
                    (lambda (text &rest params)
@@ -240,7 +247,8 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
                                (mapcar (lambda (x)
                                          (sql-stuff:colm table x))
                                        search-cols)
-                               params)))))))))
+                               params))))
+                   :limitable t)))))
 
 (defun wrap-with-paging-handler (func)
   "Func is a function that returns a list. Returns that function wrapped in a closure that strips the :offset and :limit keywords from its parameters, calls the function with the remainder, and limits the resulting list accordingly."
