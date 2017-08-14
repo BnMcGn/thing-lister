@@ -168,20 +168,22 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
           (if (and (not (assoc-cdr :limitable lister))
                    (or (getf params :limit) (getf params :offset)))
               (wrap-with-paging-handler list-func)
-              list-func)))
-    (let ((res
-           (apply list-func
-                  `(,@(list (getf listerspec :lister-param))
-                      ,@(strip-keywords params)))))
-      (if (eq thingtype :multiple)
-          res
-          (mapcar (lambda (x) (list x thingtype)) res)))))
+              list-func))
+         (res
+          (apply list-func
+                 `(,@(when (find :lister-param listerspec)
+                           (list (getf listerspec :lister-param)))
+                     ,@(strip-keywords params)))))
+    (if (eq thingtype :multiple)
+        res
+        (mapcar (lambda (x) (list x thingtype)) res))))
 
 (defun get-things-length (listerspec &rest params)
   (let ((lister (apply #'get-lister listerspec)))
-    (aif (assoc-cdr :length lister)
-         (apply it
-                `(,@(list (getf listerspec :lister-param))
+    (if-let ((ln (assoc-cdr :length lister)))
+         (apply ln
+                `(,@(when (find :lister-param listerspec)
+                          (list (getf listerspec :lister-param)))
                   ,@params))
          (length (apply #'get-list-of-things listerspec params)))))
 

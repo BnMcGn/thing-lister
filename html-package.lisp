@@ -14,4 +14,5 @@
      #:things-link
      #:*html-thing-user-parts*
      #:*thing-summary-sidebar-width*
-     #:connector-display-func))
+     #:connector-display-func
+     #:render-list-for-sidebar))
