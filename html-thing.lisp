@@ -261,11 +261,10 @@ here will go into all thing-lister pages.")
 ;;;;
 
 (define-middleware thing-component ()
-  (init
-   (dolist (sym (thing-symbols))
-     (register-link sym (things-link sym) :label (capitalize-first sym)))
-   ;;FIXME: Search link to be added?
-   (main
+  (dolist (sym (thing-symbols))
+    (register-link sym (things-link sym) :label (capitalize-first sym)))
+  ;;FIXME: Search link to be added?
+  (lambda ()
     (url-case
       (:things
        (with-output-to-string (*webhax-output*)
@@ -298,4 +297,4 @@ here will go into all thing-lister pages.")
               (lister-page (list :thing thing :lister-type :connector
                                  :name name :lister-param key)))))))
       (otherwise
-       (call-endware))))))
+       (call-endware)))))
