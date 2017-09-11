@@ -51,13 +51,14 @@ here will go into all thing-lister pages.")
     (render-list-for-sidebar
      (list :lister-type :connector :thing thing :name name :lister-param key)
      ;(add-lister-param (get-connector thing name) key)
-     :label (in-label-context thing (thing-label-context name thing)))))
+     :label (format nil "~a: ~a"
+                    (capitalize-first thing) (capitalize-first name)))))
 
 (defun searchbox-display-func (thing)
   (if (assoc :searcher (get-thing thing))
       (lambda ()
         (html-out
-          (:h3 "Search " (str (thing-label thing)))
+          (:h3 "Search " (str (capitalize-first thing)))
           (:form :method "get" :action (search-link thing)
                  (:input :type "text" :name "query")
                  (:input :type "submit" :value "Search"))))
@@ -71,7 +72,7 @@ here will go into all thing-lister pages.")
     (html-out
       (:h2
        (str (concatenate 'string
-                         (thing-label *thing-thingtype*) ": "
+                         (capitalize-first *thing-thingtype*) ": "
                          ;;FIXME: implement summary-width settings?
                          (thing-summary *thing-thingtype* *thing-key*))))))
   :@inner
@@ -88,7 +89,7 @@ here will go into all thing-lister pages.")
         (name (aand (gethash *thing-thingtype* *thing-connector-set*)
                     (alexandria:hash-table-keys it)))
       (funcall (connector-display-func *thing-thingtype* name) *thing-key*)))
-  :@title (format nil "Thing: ~a" (thing-label *thing-thingtype*)))
+  :@title (format nil "Thing: ~a" (capitalize-first *thing-thingtype*)))
 
 (defun thing-pages (thing key)
   (let ((*thing-thingtype* thing)
@@ -253,7 +254,7 @@ here will go into all thing-lister pages.")
     (html-out
       (:button
        :onclick (ps-inline* `(funcall ,(third act) ,thing))
-       (str (thing-label (second act)))))))
+       (str (capitalize-first (second act)))))))
 
 
 ;;;;

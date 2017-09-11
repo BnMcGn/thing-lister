@@ -22,7 +22,7 @@
   (bind-extracted-keywords (key-params others :label :lister :searcher)
     (setf (gethash thingname *thing-set*)
           `((:keyfunc . ,keyfunc)
-            (:label . ,(or label #'thing-label))
+            (:label . ,(or label #'capitalize-first))
             (:summary . ,summary)
             ,(when lister
                    (cons :lister

@@ -1,6 +1,6 @@
 (defpackage #:html-thing-lister
   (:use #:cl #:cl-who #:thing-lister #:gadgets
-	#:alexandria #:anaphora #:webhax #:thing-labels #:parenscript)
+	#:alexandria #:anaphora #:webhax #:parenscript)
   (:shadowing-import-from #:webhax #:str #:call)
   (:shadowing-import-from #:parenscript #:switch)
   (:export #:*thing-display-set*
