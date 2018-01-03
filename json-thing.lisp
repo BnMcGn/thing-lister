@@ -1,11 +1,11 @@
 (in-package :json-thing-lister)
 
 (defun thing-translate (string-thing)
-  (or (first-match (curry  #'string-equal string-thing) (thing-symbols))
+  (or (find-if (curry  #'string-equal string-thing) (thing-symbols))
       string-thing))
 
 (defun label-translate (string-label)
-  (or (first-match (curry #'string-equal string-label) (label-symbols))
+  (or (find-if (curry #'string-equal string-label) (label-symbols))
       string-label))
 
 (defun listerspec-from-keys (&rest keys)

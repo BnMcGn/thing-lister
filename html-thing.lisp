@@ -269,33 +269,35 @@ here will go into all thing-lister pages.")
     (url-case
       (:things
        (with-output-to-string (*webhax-output*)
-         (url-case
-           (:thing
-            (bind-validated-input
-                ((thing (:pickone :options (thing-symbols)))
-                 (key (:or :integer :string)))
-              ;;FIXME: webspecials?
-              (thing-pages thing key)))
-           (:things
-            (bind-validated-input
-                ((thing (:pickone :options (thing-symbols))))
-              (lister-page (list :thing thing :lister-type :thing))))
-           (:thing-search
-            (bind-validated-input
-                ((thing (:pickone :options (thing-symbols)))
-                 &key
-                 (query :string))
-              (let ((*html-thing-current-url* (url-from-env *web-env*)))
-                (lister-page (list :thing thing :lister-type :search
-                                   :lister-param query)))))
-           (:connector
-            (bind-validated-input
-                ((thing (:pickone :options (thing-symbols)))
-                 ;;FIXME: Should also include thing-symbols under name? Can't
-                 ;; remember how that is implemented.
-                 (name (:pickone :options (thing-connector-names)))
-                 (key :integer))
-              (lister-page (list :thing thing :lister-type :connector
-                                 :name name :lister-param key)))))))
+         ;;FIXME: binding webspecials here because no one else is using them now.
+         (bind-webspecials *key-web-input*
+           (url-case
+             (:thing
+              (bind-validated-input
+                  ((thing (:pickone :options (thing-symbols)))
+                   (key (:or :integer :string)))
+                ;;FIXME: webspecials?
+                (thing-pages thing key)))
+             (:things
+              (bind-validated-input
+                  ((thing (:pickone :options (thing-symbols))))
+                (lister-page (list :thing thing :lister-type :thing))))
+             (:thing-search
+              (bind-validated-input
+                  ((thing (:pickone :options (thing-symbols)))
+                   &key
+                   (query :string))
+                (let ((*html-thing-current-url* (url-from-env *web-env*)))
+                  (lister-page (list :thing thing :lister-type :search
+                                     :lister-param query)))))
+             (:connector
+              (bind-validated-input
+                  ((thing (:pickone :options (thing-symbols)))
+                   ;;FIXME: Should also include thing-symbols under name? Can't
+                   ;; remember how that is implemented.
+                   (name (:pickone :options (thing-connector-names)))
+                   (key :integer))
+                (lister-page (list :thing thing :lister-type :connector
+                                   :name name :lister-param key))))))))
       (otherwise
        (call-endware)))))
