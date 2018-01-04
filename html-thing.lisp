@@ -139,9 +139,11 @@ here will go into all thing-lister pages.")
     (quri:render-uri purl)))
 
 ;;FIXME: Could use webhax-validate?
-(def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))
-(def-webspecial ~pagequantity~ nil
-  (>>integer :emsg "~pagequantity~: not an integer"))
+;;FIXME: Webspecials are ugly. Why eval-always?
+(eval-always
+  (def-webspecial ~pageindex~ nil (>>integer :emsg "~pageindex~: not an integer"))
+  (def-webspecial ~pagequantity~ nil
+    (>>integer :emsg "~pagequantity~: not an integer")))
 
 (defun simple-pager-display (&key total-length (url *html-thing-current-url*)
 			     page-quantity (page-index 1))
