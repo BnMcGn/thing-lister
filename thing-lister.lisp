@@ -211,46 +211,49 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 
 ;FIXME: think about me: should thing-lister depend on sql-stuff?
 
-(defun def-db-thing (thingname table summary &key sortkeys search-cols keyfunc)
-  (let ((table (or table thingname)))
-    (def-thing
-        thingname
-        (or keyfunc
-            (lambda (key)
-              (sql-stuff:get-assoc-by-pkey table key)))
-      summary
-      :lister (list
-               (lambda (&rest params)
-                 (apply #'sql-stuff:get-column
-                        table (sql-stuff:get-table-pkey table) params))
-               :sortkeys sortkeys
-               :length (lambda (&rest params)
-                         (sql-stuff:get-count
-                          (sql-stuff:unexecuted
-                            (apply #'sql-stuff:get-column
-                                   table
-                                   (sql-stuff:get-table-pkey table)
-                                   params))))
-               :limitable t)
-      :searcher (when search-cols
-                  (list
-                   (lambda (text &rest params)
-                     (apply #'sql-stuff:fulltext-search text
-                            (mapcar (lambda (x)
-                                      (sql-stuff:colm table x))
-                                    search-cols)
-                            params))
-                   :sortkeys sortkeys
-                   :length
-                   (lambda (text &rest params)
-                     (sql-stuff:get-count
-                      (sql-stuff:unexecuted
-                        (apply #'sql-stuff:fulltext-search text
-                               (mapcar (lambda (x)
-                                         (sql-stuff:colm table x))
-                                       search-cols)
-                               params))))
-                   :limitable t)))))
+(defun def-db-thing (thingname table summary &rest key-params)
+  (bind-extracted-keywords (key-params others :sortkeys :search-cols :keyfunc)
+    (let ((table (or table thingname)))
+      (apply
+       #'def-thing
+       thingname
+       (or keyfunc
+           (lambda (key)
+             (sql-stuff:get-assoc-by-pkey table key)))
+       summary
+       :lister (list
+                (lambda (&rest params)
+                  (apply #'sql-stuff:get-column
+                         table (sql-stuff:get-table-pkey table) params))
+                :sortkeys sortkeys
+                :length (lambda (&rest params)
+                          (sql-stuff:get-count
+                           (sql-stuff:unexecuted
+                             (apply #'sql-stuff:get-column
+                                    table
+                                    (sql-stuff:get-table-pkey table)
+                                    params))))
+                :limitable t)
+       :searcher (when search-cols
+                   (list
+                    (lambda (text &rest params)
+                      (apply #'sql-stuff:fulltext-search text
+                             (mapcar (lambda (x)
+                                       (sql-stuff:colm table x))
+                                     search-cols)
+                             params))
+                    :sortkeys sortkeys
+                    :length
+                    (lambda (text &rest params)
+                      (sql-stuff:get-count
+                       (sql-stuff:unexecuted
+                         (apply #'sql-stuff:fulltext-search text
+                                (mapcar (lambda (x)
+                                          (sql-stuff:colm table x))
+                                        search-cols)
+                                params))))
+                    :limitable t))
+       others))))
 
 (defun wrap-with-paging-handler (func)
   "Func is a function that returns a list. Returns that function wrapped in a closure that strips the :offset and :limit keywords from its parameters, calls the function with the remainder, and limits the resulting list accordingly."
