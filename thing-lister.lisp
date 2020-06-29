@@ -13,9 +13,9 @@
                          (car ldef))
                    (hu:plist->alist (cdr ldef)))
                   (list (cons :lister ldef)))))
-    (aif2 (assoc :limitable data)
-          data
-          (cons (cons :limitable nil) data))))
+    (if (assoc :limitable data)
+        data
+        (cons (cons :limitable nil) data))))
 
 ;;FIXME: Should be way to indicate some other params on hints.
 (defun def-thing (thingname keyfunc summary &rest key-params)
@@ -91,11 +91,11 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
 
 (defun get-connector-other-things (thing name)
   (let ((cspec (hu:hget *thing-connector-set* (list thing name))))
-    (aif (assoc-cdr :other-thing-func cspec)
-         (funcall it)
-         (aif (assoc-cdr :other-thing cspec)
-              (ensure-list it)
-              (list name)))))
+    (if-let ((ofunc (assoc-cdr :other-thing-func cspec)))
+      (funcall ofunc)
+      (if-let ((othing (assoc-cdr :other-thing cspec)))
+        (ensure-list othing)
+        (list name)))))
 
 ;;FIXME: Somewhere, order-by support needs to be implemented/thought out
 ;;;The parameters of get-lister constitute a listerspec

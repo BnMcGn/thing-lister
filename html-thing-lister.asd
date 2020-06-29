@@ -9,6 +9,7 @@
 	#:cl-who 
 	#:quri
 	#:cl-ppcre
+        #:cl-utilities
 	#:webhax)
   :components ((:file "html-package")
 	       (:file "html-thing" )))

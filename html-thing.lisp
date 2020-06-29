@@ -110,11 +110,11 @@ here will go into all thing-lister pages.")
   ;; here. Should be in listerspec, but not sure
   (let* ((keys '(:thing :name :lister-param :lister-type :lister-orderby))
          (data
-          (collecting
+          (cl-utilities:collecting
               (dolist (k keys)
                 (let ((newkey (format nil "~a-~(~a~)" extension k)))
                   (when-let ((val (getf listerspec k)))
-                    (collect (cons newkey (to-lowercase val)))))))))
+                    (cl-utilities:collect (cons newkey (to-lowercase val)))))))))
     (apply #'url-reset-keys uri data)))
 
 (defun thing-link/source (thing key)
