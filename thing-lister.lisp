@@ -173,7 +173,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
           (apply list-func
                  `(,@(when (find :lister-param listerspec)
                            (list (getf listerspec :lister-param)))
-                     ,@(strip-keywords params)))))
+                     ,@(proto:strip-keywords params)))))
     (if (eq thingtype :multiple)
         res
         (mapcar (lambda (x) (list x thingtype)) res))))
