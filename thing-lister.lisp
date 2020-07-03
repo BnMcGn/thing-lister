@@ -130,7 +130,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (let ((things (get-list-of-things listerspec :order-by order-by)))
     (unless (< 1 (length things))
       (return-from thing-next nil))
-    (let ((rem (nth-value 1 (divide-on-true (curry #'equal key) things))))
+    (let ((rem (nth-value 1 (part-on-true (curry #'equal key) things))))
       (if (< 1 (length rem))
           (second rem)
           (if loop
@@ -141,7 +141,7 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (let ((things (get-list-of-things listerspec :order-by order-by)))
     (unless (< 1 (length things))
       (return-from thing-previous nil))
-    (let ((head (divide-on-true (curry #'equal key) things)))
+    (let ((head (part-on-true (curry #'equal key) things)))
       (if (< 0 (length head))
           (last-car head)
           (if loop
@@ -152,12 +152,12 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   "All the things after current thing in the listerspec by a certain order."
   (cdr
    (nth-value
-    1 (divide-on-true (curry #'equal key)
+    1 (part-on-true (curry #'equal key)
                    (get-list-of-things listerspec :order-by order-by)))))
 
 (defun thing-all-previous (listerspec key &key order-by)
   (nth-value
-   0 (divide-on-true (curry #'equal key)
+   0 (part-on-true (curry #'equal key)
                   (get-list-of-things listerspec :order-by order-by))))
 
 (defun get-list-of-things (listerspec &rest params)
