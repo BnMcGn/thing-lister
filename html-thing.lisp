@@ -316,28 +316,37 @@ here will go into all thing-lister pages.")
 (defun arrow-pager (position url total)
   "Create a google style pager with single numerals per page."
   (let* ((plength *html-thing-page-length*)
-         (pages (1+ (/ total plength)))
-         (currpage (1+ (/ position plength)))
+         (pages (1+ (floor (/ total plength))))
+         (currpage (1+ (floor (/ position plength))))
          (lowpage (max 1 (- currpage 6))))
-    (html-out
-      (:div
-       :class "thing-pager"
-       (if (eq 1 currpage)
-           (htm (:span "&lt;"))
-           (htm (:a :href
-                    (url-reset-keys url (cons "index" (* (- currpage 2) plength)))
-                    "&lt;")))
-       (dolist (num (range lowpage pages))
-         (if (eq num currpage)
-             (htm (:span (str num)))
+    (format t "arrow-pager ~a ~a ~a ~a" total pages currpage lowpage)
+    (when (> pages 1)
+      (html-out
+        (:div
+         :class "thing-pager"
+         (if (eq 1 currpage)
+             (htm (:span "&lt;"))
              (htm (:a :href
-                      (url-reset-keys url (cons "index" (* (1- num) plength)))
-                      (str num)))))
-       (if (eq pages currpage)
-           (htm (:span "&gt;"))
-           (htm (:a :href
-                    (url-reset-keys url (cons "index" (* currpage plength)))
-                    "&gt;")))))))
+                      (url-reset-keys url (cons "index" (* (- currpage 2) plength)))
+                      "&lt;")))
+         (dolist (num (range lowpage (1+ pages)))
+           (if (eq num currpage)
+               (htm (:span (str num)))
+               (htm (:a :href
+                        (url-reset-keys url (cons "index" (* (1- num) plength)))
+                        (str num)))))
+         (if (eq pages currpage)
+             (htm (:span "&gt;"))
+             (htm (:a :href
+                      (url-reset-keys url (cons "index" (* currpage plength)))
+                      "&gt;"))))))))
 
-(defun display-things-with-pagers (source item-display-func base-url index limit)
-  )
+(defun display-things-with-pagers (source item-display-func base-url index)
+  (let ((length (funcall source :getcount t)))
+    (html-out
+       (:div
+        :class "thing-lister"
+        (arrow-pager index base-url length)
+        (dolist (itm (funcall source :index index :limit *html-thing-page-length*))
+          (funcall item-display-func itm))
+        (arrow-pager index base-url length)))))
