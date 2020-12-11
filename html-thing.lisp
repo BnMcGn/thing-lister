@@ -303,3 +303,41 @@ here will go into all thing-lister pages.")
                                    :name name :lister-param key))))))))
       (otherwise
        (call-endware)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; New stuff.
+;;
+;; - old is too complicated and opaque
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defparameter *html-thing-page-length* 30)
+
+;;FIXME: page size is not user adjustable
+(defun arrow-pager (position url total)
+  "Create a google style pager with single numerals per page."
+  (let* ((plength *html-thing-page-length*)
+         (pages (1+ (/ total plength)))
+         (currpage (1+ (/ position plength)))
+         (lowpage (max 1 (- currpage 6))))
+    (html-out
+      (:div
+       :class "thing-pager"
+       (if (eq 1 currpage)
+           (htm (:span "&lt;"))
+           (htm (:a :href
+                    (url-reset-keys url (cons "index" (* (- currpage 2) plength)))
+                    "&lt;")))
+       (dolist (num (range lowpage pages))
+         (if (eq num currpage)
+             (htm (:span (str num)))
+             (htm (:a :href
+                      (url-reset-keys url (cons "index" (* (1- num) plength)))
+                      (str num)))))
+       (if (eq pages currpage)
+           (htm (:span "&gt;"))
+           (htm (:a :href
+                    (url-reset-keys url (cons "index" (* currpage plength)))
+                    "&gt;")))))))
+
+(defun display-things-with-pagers (source item-display-func base-url index limit)
+  )
