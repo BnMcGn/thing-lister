@@ -373,4 +373,5 @@ here will go into all thing-lister pages.")
                        (:a :href main-url "See more")))))))))
 
 (defun thing-slice (src)
-  (subseq src *thing-index* (min (length src) (+ 1 *thing-index* *thing-limit*))))
+  (let ((index (or *thing-index* 0)))
+    (subseq src index (min (length src) (+ 1 index *thing-limit*)))))
