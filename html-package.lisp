@@ -15,4 +15,7 @@
      #:*html-thing-user-parts*
      #:*thing-summary-sidebar-width*
      #:connector-display-func
-     #:render-list-for-sidebar))
+     #:render-list-for-sidebar
+     #:display-things-with-pagers
+     #:*thing-index*
+     #:*thing-limit*))

@@ -85,9 +85,9 @@ The rest of the connspec consists of a plist of as yet undetermined parameters."
   (assoc-cdr :lister (get-connector thing name)))
 
 (defun thing-connector-names ()
-  (collecting
+  (cl-utilities:collecting
       (dolist (v (alexandria:hash-table-values *thing-connector-set*))
-        (mapc #'collect (alexandria:hash-table-keys v)))))
+        (mapc #'cl-utilities:collect (alexandria:hash-table-keys v)))))
 
 (defun get-connector-other-things (thing name)
   (let ((cspec (hu:hget *thing-connector-set* (list thing name))))

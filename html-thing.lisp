@@ -311,6 +311,8 @@ here will go into all thing-lister pages.")
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *html-thing-page-length* 30)
+(defparameter *thing-limit* nil)
+(defparameter *thing-index* nil)
 
 ;;FIXME: page size is not user adjustable
 (defun arrow-pager (position url total)
@@ -341,12 +343,14 @@ here will go into all thing-lister pages.")
                       (url-reset-keys url (cons "index" (* currpage plength)))
                       "&gt;"))))))))
 
-(defun display-things-with-pagers (source item-display-func base-url index)
-  (let ((length (funcall source :getcount t)))
+(defun display-things-with-pagers (source params item-display-func base-url index)
+  (let ((length (apply source (append params (list :getcount t))))
+        (*thing-limit* (or *thing-limit* *html-thing-page-length*))
+        (*thing-index* index))
     (html-out
        (:div
         :class "thing-lister"
-        (arrow-pager index base-url length)
-        (dolist (itm (funcall source :index index :limit *html-thing-page-length*))
+        ;;(arrow-pager index base-url length)
+        (dolist (itm (apply source params))
           (funcall item-display-func itm))
         (arrow-pager index base-url length)))))
