@@ -18,4 +18,5 @@
      #:render-list-for-sidebar
      #:display-things-with-pagers
      #:*thing-index*
-     #:*thing-limit*))
+     #:*thing-limit*
+     #:thing-slice))

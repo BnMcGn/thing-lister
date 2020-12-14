@@ -354,3 +354,23 @@ here will go into all thing-lister pages.")
         (dolist (itm (apply source params))
           (funcall item-display-func itm))
         (arrow-pager index base-url length)))))
+
+(defun display-things-sidebar (source params item-display-func main-url
+                               &key (class "featurebox_side") label)
+  (let ((length (apply source (append params (list :getcount t))))
+        (*thing-summary-width* *thing-summary-sidebar-width*)
+        (*thing-limit*  (or *thing-limit* *thing-summary-sidebar-width*)))
+    ;;FIXME: could display something when empty.
+    (unless (zerop length)
+      (html-out
+        (:div :class class
+              (:h3 (str label))
+              (dolist (itm (apply source params))
+                (funcall item-display-func itm))
+              (when (and main-url (< *thing-limit* length))
+                (htm
+                 (:div :class "navigation"
+                       (:a :href main-url "See more")))))))))
+
+(defun thing-slice (src)
+  (subseq src *thing-index* (min (length src) (+ 1 *thing-index* *thing-limit*))))
