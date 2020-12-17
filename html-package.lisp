@@ -19,4 +19,6 @@
      #:display-things-with-pagers
      #:*thing-index*
      #:*thing-limit*
-     #:thing-slice))
+     #:thing-slice
+     #:display-things-sidebar
+     #:*html-thing-sidebox-limit*))
