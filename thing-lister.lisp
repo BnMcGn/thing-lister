@@ -66,8 +66,8 @@
 (defun display-things-sidebar (source params item-display-func main-url
                                &key (class "featurebox_side") label)
   (let ((length (apply source (append params (list :getcount t))))
-        (*thing-summary-width* *html-thing-sidebox-limit*)
-        (*thing-limit*  (or *thing-limit* *html-thing-sidebox-limit*)))
+        (*thing-summary-width* *thing-sidebox-length*)
+        (*thing-limit*  (or *thing-limit* *thing-sidebox-length*)))
     ;;FIXME: could display something when empty.
     (unless (zerop length)
       (html-out
