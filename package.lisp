@@ -1,30 +1,16 @@
 ;;;; package.lisp
 
 (defpackage #:thing-lister
-  (:use #:cl #:gadgets #:alexandria #:anaphora)
+  (:use #:cl #:cl-who #:gadgets #:alexandria #:webhax #:parenscript)
+  (:shadowing-import-from #:webhax #:str #:call)
+  (:shadowing-import-from #:parenscript #:switch)
   (:export
-   #:def-thing
-   #:get-thing
-   #:thing-summary
-   #:def-thing-connector
-   #:get-connector-func
-   #:*thing-set*
-   #:*thing-connector-set*
-   #:get-list-of-things
-   #:get-things-length
-   #:get-things-thingtype
-   #:thing-call-keyfunc
-   #:def-db-thing
-   #:thing-symbols
-   #:*thing-types*
-   #:with-thingset
-   #:thing-connector-names
-   #:thing-next
-   #:thing-previous
-   #:thing-all-next
-   #:thing-all-previous
-   #:wrap-with-paging-handler
-   #:get-connector-other-things
+   #:*thing-sidebox-width*
+   #:display-things-with-pagers
+   #:*thing-index*
+   #:*thing-limit*
+   #:thing-slice
+   #:display-things-sidebar
+   #:*thing-sidebox-length*
    #:*thing-summary-width*
-   #:get-connector
-   #:add-lister-param))
+   #:*thing-page-length*))
