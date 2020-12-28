@@ -22,6 +22,19 @@
   (let ((index (or *thing-index* 0)))
     (subseq src index (min (length src) (+ 1 index *thing-limit*)))))
 
+(defun url-reset-keys (url &rest newvals)
+  (let ((purl (quri:uri url))
+        (keys (mapcar #'car newvals)))
+    (setf
+     (quri:uri-query-params purl)
+     (concatenate
+      'list
+      (remove-if-member (quri:uri-query-params purl) keys
+                        :key (lambda (x) (car x))
+                        :test #'equal)
+      newvals))
+    (quri:render-uri purl)))
+
 ;;FIXME: page size is not user adjustable
 (defun arrow-pager (position url total)
   "Create a google style pager with single numerals per page."

@@ -23,18 +23,7 @@ here will go into all thing-lister pages.")
     (apply #'url-reset-keys uri data)))
 
 
-(defun url-reset-keys (url &rest newvals)
-  (let ((purl (quri:uri url))
-        (keys (mapcar #'car newvals)))
-    (setf
-     (quri:uri-query-params purl)
-     (concatenate
-      'list
-      (remove-if-member (quri:uri-query-params purl) keys
-                        :key (lambda (x) (car x))
-                        :test #'equal)
-      newvals))
-    (quri:render-uri purl)))
+
 
 ;;;;
 ;; Thing-lister as clack middleware
