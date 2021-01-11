@@ -13,4 +13,5 @@
    #:display-things-sidebar
    #:*thing-sidebox-length*
    #:*thing-summary-width*
-   #:*thing-page-length*))
+   #:*thing-page-length*
+   #:url-reset-keys))
