@@ -65,16 +65,23 @@
                       "&gt;"))))))))
 
 (defun display-things-with-pagers (source params item-display-func base-url index)
+  (display-thing-block-with-pagers
+   source params
+   (lambda (items)
+     (dolist (itm items)
+       (funcall item-display-func itm)))
+   base-url index))
+
+(defun display-thing-block-with-pagers (source params display-func base-url index)
   (let ((length (apply source (append params (list :getcount t))))
         (*thing-limit* (or *thing-limit* *thing-page-length*))
         (*thing-index* index))
     (html-out
-       (:div
-        :class "thing-lister"
-        ;;(arrow-pager index base-url length)
-        (dolist (itm (apply source params))
-          (funcall item-display-func itm))
-        (arrow-pager index base-url length)))))
+      (:div
+       :class "thing-lister"
+       ;;(arrow-pager index base-url length)
+       (funcall display-func (apply source params))
+       (arrow-pager index base-url length)))))
 
 (defun display-things-sidebar (source params item-display-func main-url
                                &key (class "featurebox_side") label)

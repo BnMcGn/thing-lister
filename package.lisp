@@ -14,4 +14,5 @@
    #:*thing-sidebox-length*
    #:*thing-summary-width*
    #:*thing-page-length*
-   #:url-reset-keys))
+   #:url-reset-keys
+   #:display-thing-block-with-pagers))
