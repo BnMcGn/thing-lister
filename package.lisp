@@ -15,4 +15,5 @@
    #:*thing-summary-width*
    #:*thing-page-length*
    #:url-reset-keys
-   #:display-thing-block-with-pagers))
+   #:display-thing-block-with-pagers
+   #:display-thing-block-in-sidebar))

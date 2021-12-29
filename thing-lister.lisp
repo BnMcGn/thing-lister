@@ -85,6 +85,15 @@
 
 (defun display-things-sidebar (source params item-display-func main-url
                                &key (class "featurebox_side") label)
+  (display-thing-block-in-sidebar
+   source params
+   (lambda (items)
+     (dolist (itm items)
+       (funcall item-display-func itm)))
+   main-url :class class :label label))
+
+(defun display-thing-block-in-sidebar (source params display-func main-url
+                                       &key (class "featurebox_side") label)
   (let ((length (apply source (append params (list :getcount t))))
         (*thing-summary-width* *thing-sidebox-length*)
         (*thing-limit*  (or *thing-limit* *thing-sidebox-length*)))
@@ -93,10 +102,8 @@
       (html-out
         (:div :class class
               (:h3 (str label))
-              (dolist (itm (apply source params))
-                (funcall item-display-func itm))
+              (funcall display-func (apply source params))
               (when (and main-url (< *thing-limit* length))
                 (htm
                  (:div :class "navigation"
                        (:a :href main-url "See more")))))))))
-
