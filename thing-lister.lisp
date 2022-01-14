@@ -9,7 +9,7 @@
 (defparameter *thing-sidebox-length* 10)
 
 ;; For sidebar lists
-(defparameter *thing-sidebox-width* nil)
+(defparameter *thing-sidebox-width* 10)
 
 ;; For full width lists
 (defparameter *thing-summary-width* 40)
@@ -93,9 +93,10 @@
    main-url :class class :label label))
 
 (defun display-thing-block-in-sidebar (source params display-func main-url
-                                       &key (class "featurebox_side") label)
+                                       &key (class "featurebox_side")
+                                         label (trim *thing-sidebox-width*))
   (let ((length (apply source (append params (list :getcount t))))
-        (*thing-summary-width* *thing-sidebox-length*)
+        (*thing-summary-width* trim)
         (*thing-limit*  (or *thing-limit* *thing-sidebox-length*)))
     ;;FIXME: could display something when empty.
     (unless (zerop length)
