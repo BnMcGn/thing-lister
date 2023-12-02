@@ -72,13 +72,14 @@
        (funcall item-display-func itm)))
    base-url index))
 
-(defun display-thing-block-with-pagers (source params display-func base-url index)
+(defun display-thing-block-with-pagers (source params display-func base-url index
+                                               &key (class "thing-lister"))
   (let ((length (apply source (append params (list :getcount t))))
         (*thing-limit* (or *thing-limit* *thing-page-length*))
         (*thing-index* index))
     (html-out
       (:div
-       :class "thing-lister"
+       :class class
        ;;(arrow-pager index base-url length)
        (funcall display-func (apply source params))
        (arrow-pager index base-url length)))))
